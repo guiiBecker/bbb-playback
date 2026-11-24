@@ -80,5 +80,12 @@
   "studio.controls.forward": "Forward {seconds} seconds",
   "studio.controls.mute": "Mute",
   "studio.controls.unmute": "Unmute",
-  "studio.controls.volume": "Volume"
+  "studio.controls.volume": "Volume",
+  "studio.attendees.more": "+{count} attended",
+  "studio.attendees.total": "{count, plural, one {# participant} other {# participants}}",
+  "studio.attendees.open": "See all participants",
+  "studio.attendees.title": "Participants ({count})",
+  "studio.attendees.close": "Close",
+  "studio.attendees.moderator": "Moderator",
+  "studio.attendees.unnamed": "{count, plural, one {# more participant has} other {# more participants have}} no name in this recording."
 }

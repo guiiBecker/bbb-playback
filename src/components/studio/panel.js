@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import storage from 'utils/data/storage';
+import Attendees from './attendees';
 import Chat from './chat';
 import Notes from './notes';
 import Transcript from './transcript';
@@ -25,7 +26,7 @@ const initialTab = (captions) => {
   return TABS[0];
 };
 
-// Header with the recording (name, date and time, duration), tabs, the
+// Header with the recording (name, date and time, duration, participants), tabs, the
 // selected tab's content and a footer for actions. Transcription, chat and
 // notes are in place; the other tabs and the footer actions come in later steps
 const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
@@ -44,6 +45,7 @@ const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
           <span aria-hidden="true">·</span>
           <span>{intl.formatMessage(intlMessages.minutes, { minutes: Math.max(1, Math.round(length / 60)) })}</span>
         </p>
+        <Attendees />
       </header>
 
       <div aria-label={intl.formatMessage(intlMessages.tabs)} className="studio-tabs" role="tablist">

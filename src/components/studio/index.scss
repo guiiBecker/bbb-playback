@@ -130,6 +130,137 @@
   margin: 0;
 }
 
+.studio-attendees {
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  margin: var(--studio-space-xs) 0 0;
+  position: relative;
+}
+
+.studio-attendees-trigger {
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: var(--studio-radius-small);
+  color: inherit;
+  display: flex;
+  font-size: inherit;
+  gap: var(--studio-space-s);
+  margin: calc(-1 * var(--studio-space-xs));
+  padding: var(--studio-space-xs);
+
+  &:hover {
+    background-color: var(--studio-highlight);
+    color: var(--studio-text);
+  }
+}
+
+.studio-avatars {
+  display: flex;
+  gap: var(--studio-space-xs);
+}
+
+.studio-avatar {
+  align-items: center;
+  background-color: var(--studio-primary);
+  border-radius: 50%;
+  color: var(--studio-on-primary);
+  display: flex;
+  flex-shrink: 0;
+  font-size: .625rem; // 10px
+  font-weight: var(--studio-weight-hard);
+  height: 1.5rem;
+  justify-content: center;
+  width: 1.5rem;
+}
+
+// The participant list, a small dialog under the attendees row
+.studio-participants {
+  background-color: var(--studio-card);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius-small);
+  box-shadow: 0 8px 24px rgba(16, 33, 51, .18);
+  color: var(--studio-text);
+  left: 0;
+  margin-top: var(--studio-space-s);
+  max-width: calc(100vw - 2 * var(--studio-space-m));
+  outline: none;
+  position: absolute;
+  top: 100%;
+  width: 18rem;
+  z-index: 20;
+}
+
+.studio-participants-header {
+  align-items: center;
+  border-bottom: 1px solid var(--studio-line);
+  display: flex;
+  justify-content: space-between;
+  padding: var(--studio-space-s) var(--studio-space-s) var(--studio-space-s) var(--studio-space-m);
+
+  h2 {
+    font-size: var(--studio-font-s);
+    font-weight: var(--studio-weight-hard);
+    margin: 0;
+  }
+}
+
+.studio-participants-close {
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--studio-muted);
+  font-size: var(--studio-font-l);
+  height: 2rem;
+  line-height: 1;
+  width: 2rem;
+
+  &:hover {
+    background-color: var(--studio-highlight);
+    color: var(--studio-text);
+  }
+}
+
+.studio-participants-list {
+  list-style: none;
+  margin: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: var(--studio-space-xs) 0;
+
+  li {
+    align-items: center;
+    display: flex;
+    gap: var(--studio-space-s);
+    padding: var(--studio-space-xs) var(--studio-space-m);
+  }
+}
+
+.studio-participants-name {
+  flex: 1;
+  font-size: var(--studio-font-s);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-participants-role {
+  background-color: var(--studio-highlight);
+  border-radius: 1rem;
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  padding: 0 var(--studio-space-s);
+}
+
+.studio-participants-note {
+  border-top: 1px solid var(--studio-line);
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  margin: 0;
+  padding: var(--studio-space-s) var(--studio-space-m);
+}
+
 .studio-tabs {
   border-bottom: 1px solid var(--studio-line);
   display: flex;

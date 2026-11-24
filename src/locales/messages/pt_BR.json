@@ -79,5 +79,12 @@
   "studio.controls.forward": "Avançar {seconds} segundos",
   "studio.controls.mute": "Silenciar",
   "studio.controls.unmute": "Ativar som",
-  "studio.controls.volume": "Volume"
+  "studio.controls.volume": "Volume",
+  "studio.attendees.more": "+{count} participaram",
+  "studio.attendees.total": "{count, plural, one {# participante} other {# participantes}}",
+  "studio.attendees.open": "Ver todos os participantes",
+  "studio.attendees.title": "Participantes ({count})",
+  "studio.attendees.close": "Fechar",
+  "studio.attendees.moderator": "Moderador",
+  "studio.attendees.unnamed": "{count, plural, one {Mais # participante não tem} other {Mais # participantes não têm}} nome nesta gravação."
 }
