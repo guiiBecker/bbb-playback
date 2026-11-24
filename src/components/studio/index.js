@@ -24,7 +24,7 @@ const Studio = () => {
       className="studio"
       id={ID.PLAYER}
     >
-      <Panel />
+      <Panel time={state.time} />
       <main className="studio-main">
         <Stage hasVideo={state.hasVideo} ratio={state.ratio} />
         <Controls state={state} />

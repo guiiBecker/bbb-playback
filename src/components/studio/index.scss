@@ -15,6 +15,7 @@
   --studio-muted: var(--color-text-light, #717C91);          // colorTextLight
   --studio-line: var(--color-neutral-4, #DCE4EC);            // colorNeutral4
   --studio-rail: var(--color-neutral-4, #DCE4EC);            // colorNeutral4
+  --studio-highlight: var(--color-light-gray, #F4F6FA);      // colorLightGray
   --studio-focus: var(--color-border-focus-ring, rgba(29, 101, 212, .15));
 
   // Spacing (sizing.ts)
@@ -164,10 +165,182 @@
 }
 
 .studio-panel-body {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  // Edge to edge, so list rows can mark the panel's border
+  margin: 0 calc(-1 * var(--studio-space-l));
+  min-height: 0;
+  // Each tab scrolls its own list
+  overflow: hidden;
+}
+
+.studio-empty {
+  color: var(--studio-muted);
+  font-size: var(--studio-font-s);
+  margin: var(--studio-space-l);
+  text-align: center;
+}
+
+// Chat
+
+.studio-chat {
+  flex: 1;
+  list-style: none;
+  margin: 0;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--studio-space-m) 0;
+  padding: var(--studio-space-s) 0;
+  position: relative;
+
+  // The avatar classes come from the classic player (components/utils/avatar)
+  .avatar-wrapper {
+    flex-shrink: 0;
+    height: auto;
+  }
+
+  .avatar:not(.circle) {
+    border-radius: var(--studio-radius-small);
+  }
+}
+
+.studio-message {
+  border-left: 3px solid transparent;
+  display: flex;
+  gap: var(--studio-space-sm);
+  padding: var(--studio-space-s) var(--studio-space-l) var(--studio-space-s) calc(var(--studio-space-l) - 3px);
+  transition: background-color .2s, opacity .2s;
+
+  &.future {
+    opacity: .5;
+  }
+
+  &.current {
+    background-color: var(--studio-highlight);
+    border-left-color: var(--studio-primary);
+  }
+
+  &.highlight {
+    background-color: var(--studio-highlight);
+    opacity: 1;
+  }
+}
+
+.studio-message-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.studio-message-header {
+  align-items: baseline;
+  display: flex;
+  gap: var(--studio-space-s);
+}
+
+.studio-message-name {
+  color: var(--studio-text);
+  font-size: var(--studio-font-s);
+  font-weight: var(--studio-weight-hard);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-message-time {
+  background: none;
+  border: none;
+  border-radius: var(--studio-space-xs);
+  color: var(--studio-muted);
+  flex-shrink: 0;
+  font-size: var(--studio-font-xs);
+  font-variant-numeric: tabular-nums;
+  padding: 0 var(--studio-space-xs);
+
+  &:hover {
+    color: var(--studio-primary);
+    text-decoration: underline;
+  }
+}
+
+.studio-message-edited {
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  font-style: italic;
+}
+
+.studio-message-text {
+  color: var(--studio-text);
+  font-size: var(--studio-font-s);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+
+  &.emphasized {
+    font-weight: var(--studio-weight-default);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: var(--studio-primary);
+  }
+
+  img {
+    max-width: 100%;
+  }
+}
+
+.studio-message-reply {
+  background-color: var(--studio-highlight);
+  border: none;
+  border-left: 3px solid var(--studio-line);
+  border-radius: var(--studio-space-xs);
+  color: var(--studio-muted);
+  display: block;
+  font-size: var(--studio-font-xs);
+  margin: var(--studio-space-xs) 0;
+  max-width: 100%;
+  overflow: hidden;
+  padding: var(--studio-space-xs) var(--studio-space-s);
+  text-align: start;
+
+  p {
+    display: inline;
+    margin: 0;
+  }
+}
+
+.studio-message-reply-name {
+  color: var(--studio-text);
+  display: block;
+  font-weight: var(--studio-weight-default);
+}
+
+.studio-message-reply-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.studio-message-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--studio-space-xs);
+  margin-top: var(--studio-space-xs);
+}
+
+.studio-message-reaction {
+  align-items: center;
+  border: 1px solid var(--studio-line);
+  border-radius: 1rem;
+  color: var(--studio-text);
+  display: inline-flex;
+  font-size: var(--studio-font-xs);
+  gap: var(--studio-space-xs);
+  padding: 0 var(--studio-space-s);
 }
 
 .studio-panel-footer {

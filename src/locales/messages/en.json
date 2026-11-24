@@ -52,5 +52,10 @@
   "studio.controls.pause": "Pause",
   "studio.controls.timeline": "Timeline",
   "studio.info.minutes": "{minutes} min",
-  "studio.info.file": "Media file"
+  "studio.info.file": "Media file",
+  "studio.chat.aria": "Chat messages",
+  "studio.chat.empty": "No chat messages in this recording.",
+  "studio.chat.edited": "(edited)",
+  "studio.chat.seek": "Go to {time}",
+  "studio.chat.reply": "Show the replied message"
 }

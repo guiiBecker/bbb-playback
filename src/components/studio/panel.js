@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import storage from 'utils/data/storage';
+import Chat from './chat';
 
 const TABS = ['transcription', 'chat', 'chapters', 'questions'];
 
@@ -13,9 +14,9 @@ const intlMessages = defineMessages({
   tabs: { id: 'studio.tabs.aria', defaultMessage: 'Recording content' },
 });
 
-// Header, tabs, the selected tab's content and a footer for actions. The tab
-// contents and the footer actions come in later steps
-const Panel = () => {
+// Header, tabs, the selected tab's content and a footer for actions. Chat is
+// in place; the other tabs and the footer actions come in later steps
+const Panel = ({ time }) => {
   const intl = useIntl();
   const [tab, setTab] = useState(TABS[0]);
   const { name, start } = storage.metadata;
@@ -45,7 +46,9 @@ const Panel = () => {
         ))}
       </div>
 
-      <div className="studio-panel-body" data-tab={tab} role="tabpanel" />
+      <div className="studio-panel-body" data-tab={tab} role="tabpanel">
+        {tab === 'chat' ? <Chat time={time} /> : null}
+      </div>
 
       <footer className="studio-panel-footer" />
     </aside>
