@@ -44,13 +44,12 @@
   // The redesign's dark player and its surroundings. No design system
   // counterpart yet, so no theme variable behind them
   --studio-shell: #1F2328;                // around the panel and the player
-  --studio-player: #0B0D10;               // stage and controls
+  --studio-player: #001428;               // stage and controls, also in fullscreen
   --studio-player-text: #F1F3F6;
   --studio-player-muted: #B4BCC8;
   --studio-player-rail: #4A515C;
   --studio-player-hover: rgba(255, 255, 255, .12);
   --studio-active: #E8F0FB;               // the panel item being played
-  --studio-fullscreen: #001428;           // behind slide and webcams in fullscreen
 }
 
 // Layout: panel | player (stage and controls)
@@ -546,7 +545,7 @@
 // on its right, with wide margins; the controls sit at the bottom. Also
 // overrides the narrow-screen layout
 @mixin studio-main-fullscreen {
-  background-color: var(--studio-fullscreen);
+  background-color: var(--studio-player);
   grid-template-rows: minmax(0, 1fr) auto;
   padding: 0 var(--studio-space-s) var(--studio-space-s);
 
