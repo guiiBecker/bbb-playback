@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import cx from 'classnames';
 import DOMPurify from 'dompurify';
 import { defineMessages, useIntl } from 'react-intl';
 import Avatar from 'components/utils/avatar';
 import { getCurrentDataIndex } from 'utils/data';
 import storage from 'utils/data/storage';
-import player from 'utils/player';
+import { useFollow } from './follow';
 import { formatTime, seekTo } from './utils';
 
 const intlMessages = defineMessages({
@@ -19,27 +19,6 @@ const intlMessages = defineMessages({
 const sanitize = (html) => ({ __html: DOMPurify.sanitize(html || '') });
 
 const byCount = (a, b) => Number(b.count) - Number(a.count);
-
-// How long the list stays where the user scrolled it before following again
-const READING_PAUSE = 5000;
-
-// Keys that scroll the list when it has the focus
-const SCROLL_KEYS = ['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '];
-
-// Puts the node a third of the way down the list, or at the top when it is too
-// tall for that. Moves the list only: scrollIntoView would also scroll the page
-// on narrow screens, where the panel sits below the player
-const scrollWithin = (container, node) => {
-  if (!container || !node) return;
-
-  // The list is the nodes' offset parent (position: relative)
-  const room = container.clientHeight / 3;
-  const top = node.offsetTop - (node.offsetHeight > 2 * room ? 0 : room);
-  const target = Math.max(0, Math.min(top, container.scrollHeight - container.clientHeight));
-  if (Math.abs(container.scrollTop - target) > 1) {
-    container.scrollTo({ behavior: 'smooth', top: target });
-  }
-};
 
 const Message = React.memo(({ current, intl, item, onReply, past, repliedTo }) => {
   const time = formatTime(item.timestamp);
@@ -109,47 +88,15 @@ const Chat = ({ time }) => {
   const messages = useMemo(() => storage.chat || [], []);
   const byId = useMemo(() => new Map(messages.map((item) => [item.id, item])), [messages]);
   const currentIndex = getCurrentDataIndex(messages, time);
-  const list = useRef(null);
-  // When the user last scrolled the list themselves. Only user input counts:
-  // the list's own smooth scrolling fires scroll events too
-  const readAt = useRef(0);
-  const onRead = useCallback(() => { readAt.current = Date.now(); }, []);
-  const onKeyDown = useCallback((event) => {
-    if (SCROLL_KEYS.includes(event.key) && event.target === event.currentTarget) onRead();
-  }, [onRead]);
-  // Grabbing the scrollbar: the press lands on the list itself, not a message
-  const onPointerDown = useCallback((event) => {
-    if (event.target === event.currentTarget) onRead();
-  }, [onRead]);
-
-  const nodeOf = useCallback((id) => (list.current
-    ? list.current.querySelector(`[data-id="${CSS.escape(id)}"]`)
-    : null), []);
-
-  useEffect(() => {
-    if (currentIndex < 0 || Date.now() - readAt.current < READING_PAUSE) return;
-    scrollWithin(list.current, nodeOf(messages[currentIndex].id));
-  }, [currentIndex, messages, nodeOf]);
-
-  // Seeking (a message's time, the timeline) is a request to follow again
-  useEffect(() => {
-    const p = player.primary;
-    if (!p) return undefined;
-
-    const follow = () => { readAt.current = 0; };
-    p.on('seeking', follow);
-    return () => { if (!p.isDisposed()) p.off('seeking', follow); };
-  }, []);
+  const { listProps, reveal } = useFollow(currentIndex >= 0 ? messages[currentIndex].id : null);
 
   const onReply = useCallback((id) => {
-    const node = nodeOf(id);
+    const node = reveal(id);
     if (!node) return;
 
-    onRead();
-    scrollWithin(list.current, node);
     node.classList.add('highlight');
     setTimeout(() => node.classList.remove('highlight'), 1200);
-  }, [nodeOf, onRead]);
+  }, [reveal]);
 
   if (!messages.length) {
     return <p className="studio-empty">{intl.formatMessage(intlMessages.empty)}</p>;
@@ -158,13 +105,8 @@ const Chat = ({ time }) => {
   return (
     <ul
       aria-label={intl.formatMessage(intlMessages.aria)}
-      className="studio-chat"
-      onKeyDown={onKeyDown}
-      onPointerDown={onPointerDown}
-      onTouchMove={onRead}
-      onWheel={onRead}
-      ref={list}
-      tabIndex={0}
+      className="studio-chat studio-list"
+      {...listProps}
     >
       {messages.map((item, index) => (
         <Message
