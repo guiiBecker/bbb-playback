@@ -753,9 +753,37 @@
   min-width: 0;
 }
 
-// Reserved for the event markers; a thin gap until they come
+// What happened along the recording, above the track (markers.js)
 .studio-markers {
-  height: var(--studio-space-xs);
+  height: 30px;
+  position: relative;
+}
+
+.studio-marker {
+  align-items: center;
+  background-color: var(--studio-player-hover);
+  border: none;
+  border-radius: 50%;
+  bottom: 2px;
+  color: var(--studio-player-muted);
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  transform: translateX(-50%);
+  transition: background-color .2s, color .2s;
+  width: 24px;
+
+  &:hover {
+    background-color: var(--studio-player-rail);
+    color: var(--studio-player-text);
+  }
+
+  &.reached {
+    background-color: var(--studio-primary);
+    color: var(--studio-on-primary);
+  }
 }
 
 .studio-track {
@@ -783,6 +811,16 @@
 
 .studio-track-fill {
   background-color: var(--studio-primary);
+}
+
+.studio-track-gap {
+  // The player's colour cuts the rail and the fill alike
+  background-color: var(--studio-player);
+  height: 9px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
 }
 
 .studio-track-handle {

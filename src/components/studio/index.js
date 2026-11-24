@@ -17,7 +17,11 @@ const intlMessages = defineMessages({
 // the right one dark player, the stage above the controls
 const Studio = () => {
   const intl = useIntl();
-  const state = usePlayerState();
+  const player = usePlayerState();
+  // The recording's own length until the media reports one (or when it cannot
+  // be decoded), so the timeline and its markers are there from the start
+  const { end, start } = storage.metadata;
+  const state = { ...player, duration: player.duration || Math.max(0, (end - start) / 1000) };
   const captions = storage.captions || [];
   const [locale, setLocale] = useState(() => pickLocale(captions, intl.locale));
   const [captionsOn, setCaptionsOn] = useState(true);

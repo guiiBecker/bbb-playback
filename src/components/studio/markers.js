@@ -1,0 +1,82 @@
+import { ID } from 'utils/constants';
+import storage from 'utils/data/storage';
+
+// Marker types, from the most to the least relevant: when markers merge, the
+// most relevant type gives the icon
+const TYPES = ['poll', 'video', 'screenshare', 'chat', 'slide'];
+
+// Markers closer than this (a fraction of the duration) merge into one, so a
+// busy recording does not draw an unreadable row of icons
+const MARKER_BUCKET = 0.03;
+
+// Segment boundaries closer than this are dropped: a run of quick slide
+// changes is one segment, not a row of slivers
+const SEGMENT_MIN = 0.02;
+
+// Everything with a time in the published recording. Only what the published
+// files hold: chat (slides_new.xml), slides and screen sharing (shapes.svg,
+// deskshare.xml), polls (polls.json), external videos (external_videos.json)
+const collectEvents = (duration) => {
+  const events = [];
+  const add = (type, time) => {
+    if (Number.isFinite(time) && time >= 0 && time <= duration) events.push({ time, type });
+  };
+
+  (storage.chat || []).forEach((message) => add('chat', message.timestamp));
+  (storage.polls || []).forEach((poll) => add('poll', poll.timestamp));
+  (storage.videos || []).forEach((video) => add('video', video.timestamp));
+  (storage.screenshare || []).forEach((share) => add('screenshare', share.timestamp));
+
+  // A slide change is a new image in shapes.svg; screen sharing shows up there
+  // too, already counted above. The first image is the start, not a change
+  let previous = null;
+  (storage.thumbnails || []).forEach((thumbnail, index) => {
+    const changed = thumbnail.src !== ID.SCREENSHARE && thumbnail.src !== previous;
+    if (index > 0 && changed) add('slide', thumbnail.timestamp);
+    previous = thumbnail.src;
+  });
+
+  return events.sort((a, b) => a.time - b.time);
+};
+
+// [{ time, position (0-1), type, counts: { chat: 3, … } }]
+const buildMarkers = (duration) => {
+  if (!duration) return [];
+
+  const markers = [];
+  collectEvents(duration).forEach((event) => {
+    const position = event.time / duration;
+    const last = markers[markers.length - 1];
+
+    if (last && position - last.position < MARKER_BUCKET) {
+      last.counts[event.type] = (last.counts[event.type] || 0) + 1;
+      if (TYPES.indexOf(event.type) < TYPES.indexOf(last.type)) last.type = event.type;
+    } else {
+      markers.push({ counts: { [event.type]: 1 }, position, time: event.time, type: event.type });
+    }
+  });
+
+  return markers;
+};
+
+// Positions (0-1) where the rail breaks: slide changes and screen sharing
+const buildSegments = (duration) => {
+  if (!duration) return [];
+
+  const breaks = [];
+  collectEvents(duration)
+    .filter((event) => event.type === 'slide' || event.type === 'screenshare')
+    .forEach((event) => {
+      const position = event.time / duration;
+      const last = breaks.length ? breaks[breaks.length - 1] : 0;
+      if (position - last >= SEGMENT_MIN && 1 - position >= SEGMENT_MIN) breaks.push(position);
+    });
+
+  return breaks;
+};
+
+export {
+  TYPES,
+  buildMarkers,
+  buildSegments,
+};

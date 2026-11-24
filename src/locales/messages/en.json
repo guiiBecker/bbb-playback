@@ -68,5 +68,10 @@
   "studio.tab.notes": "Notes",
   "studio.notes.aria": "Shared notes",
   "studio.notes.empty": "No shared notes in this recording.",
-  "studio.notes.hint": "As they were when the meeting ended"
+  "studio.notes.hint": "As they were when the meeting ended",
+  "studio.marker.chat": "{count, plural, one {# chat message} other {# chat messages}}",
+  "studio.marker.slide": "{count, plural, one {# slide change} other {# slide changes}}",
+  "studio.marker.poll": "{count, plural, one {# poll} other {# polls}}",
+  "studio.marker.screenshare": "Screen sharing",
+  "studio.marker.video": "{count, plural, one {# external video} other {# external videos}}"
 }
