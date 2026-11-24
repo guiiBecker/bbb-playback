@@ -74,5 +74,7 @@
   "studio.marker.slide": "{count, plural, one {# troca de slide} other {# trocas de slide}}",
   "studio.marker.poll": "{count, plural, one {# enquete} other {# enquetes}}",
   "studio.marker.screenshare": "Compartilhamento de tela",
-  "studio.marker.video": "{count, plural, one {# vídeo externo} other {# vídeos externos}}"
+  "studio.marker.video": "{count, plural, one {# vídeo externo} other {# vídeos externos}}",
+  "studio.controls.backward": "Voltar {seconds} segundos",
+  "studio.controls.forward": "Avançar {seconds} segundos"
 }

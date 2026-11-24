@@ -1,17 +1,24 @@
 import React, { useMemo, useRef, useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
-import { play } from 'utils/actions';
+import { play, seek } from 'utils/actions';
+import player from 'utils/player';
 import Icon from './icon';
 import { buildMarkers, buildSegments, TYPES } from './markers';
 import Speed from './speed';
 import { formatTime, seekTo as setTime } from './utils';
+
+// The back and forward buttons' step, also the timeline's arrow keys. The
+// classic player's 15 s shortcut stays as it is
+const SEEK_STEP = 5;
 
 const intlMessages = defineMessages({
   play: { id: 'studio.controls.play', defaultMessage: 'Play' },
   pause: { id: 'studio.controls.pause', defaultMessage: 'Pause' },
   timeline: { id: 'studio.controls.timeline', defaultMessage: 'Timeline' },
   captions: { id: 'studio.controls.captions', defaultMessage: 'Captions' },
+  backward: { id: 'studio.controls.backward', defaultMessage: 'Back {seconds} seconds' },
+  forward: { id: 'studio.controls.forward', defaultMessage: 'Forward {seconds} seconds' },
   fullscreen: { id: 'studio.controls.fullscreen', defaultMessage: 'Fullscreen' },
   exitFullscreen: { id: 'studio.controls.exitFullscreen', defaultMessage: 'Exit fullscreen' },
   chat: { id: 'studio.marker.chat', defaultMessage: '{count, plural, one {# chat message} other {# chat messages}}' },
@@ -96,7 +103,7 @@ const Timeline = ({ duration, time, label }) => {
   };
 
   const onKeyDown = (event) => {
-    const step = { ArrowLeft: -5, ArrowRight: 5 }[event.key];
+    const step = { ArrowLeft: -SEEK_STEP, ArrowRight: SEEK_STEP }[event.key];
     if (step) {
       event.preventDefault();
       setTime(Math.min(duration, Math.max(0, time + step)));
@@ -159,8 +166,38 @@ const FullscreenButton = ({ fullscreen }) => {
   );
 };
 
-// Play, time, timeline, speed, captions and fullscreen. The other buttons
-// (seek, volume) go in the actions slot in later steps
+// Back and forward by a fixed step
+const SeekButtons = () => {
+  const intl = useIntl();
+  const seconds = SEEK_STEP;
+  const step = (direction) => {
+    if (player.primary) seek(direction * seconds);
+  };
+
+  return (
+    <div className="studio-seek">
+      {[['backward', -1], ['forward', 1]].map(([name, direction]) => {
+        const label = intl.formatMessage(intlMessages[name], { seconds });
+
+        return (
+          <button
+            aria-label={label}
+            className="studio-control"
+            key={name}
+            onClick={() => step(direction)}
+            title={label}
+            type="button"
+          >
+            <Icon name={name} size={20} />
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+// Play, back and forward, time, timeline, speed, captions and fullscreen.
+// The volume goes in the actions slot in a later step
 const Controls = ({ captions, fullscreen, state }) => {
   const intl = useIntl();
   const {
@@ -180,6 +217,7 @@ const Controls = ({ captions, fullscreen, state }) => {
       >
         <Icon name={paused ? 'play' : 'pause'} size={18} />
       </button>
+      <SeekButtons />
       <span className="studio-clock">
         {formatTime(time)} / {formatTime(duration)}
       </span>

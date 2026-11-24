@@ -767,9 +767,9 @@
   column-gap: var(--studio-space-s);
   display: grid;
   grid-template-areas:
-    'timeline timeline timeline'
-    'play clock actions';
-  grid-template-columns: auto minmax(0, 1fr) auto;
+    'timeline timeline timeline timeline'
+    'play seek clock actions';
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   padding: 0 var(--studio-space-ml) var(--studio-space-sm);
 }
 
@@ -789,6 +789,12 @@
   &:hover {
     background-color: var(--studio-primary-hover);
   }
+}
+
+.studio-seek {
+  display: flex;
+  grid-area: seek;
+  margin-left: var(--studio-space-xs);
 }
 
 .studio-clock {

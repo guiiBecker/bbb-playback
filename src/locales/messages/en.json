@@ -75,5 +75,7 @@
   "studio.marker.slide": "{count, plural, one {# slide change} other {# slide changes}}",
   "studio.marker.poll": "{count, plural, one {# poll} other {# polls}}",
   "studio.marker.screenshare": "Screen sharing",
-  "studio.marker.video": "{count, plural, one {# external video} other {# external videos}}"
+  "studio.marker.video": "{count, plural, one {# external video} other {# external videos}}",
+  "studio.controls.backward": "Back {seconds} seconds",
+  "studio.controls.forward": "Forward {seconds} seconds"
 }
