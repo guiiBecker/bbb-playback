@@ -96,7 +96,7 @@ const FullscreenButton = ({ fullscreen }) => {
       title={label}
       type="button"
     >
-      <Icon name={active ? 'fullscreenExit' : 'fullscreen'} />
+      <Icon name={active ? 'fullscreenExit' : 'fullscreen'} size={20} />
     </button>
   );
 };
@@ -115,7 +115,7 @@ const Controls = ({ captions, fullscreen, state }) => {
         onClick={() => play()}
         type="button"
       >
-        <Icon name={paused ? 'play' : 'pause'} size={30} />
+        <Icon name={paused ? 'play' : 'pause'} size={18} />
       </button>
       <span className="studio-clock">
         {formatTime(time)} / {formatTime(duration)}
@@ -131,7 +131,7 @@ const Controls = ({ captions, fullscreen, state }) => {
             title={intl.formatMessage(intlMessages.captions)}
             type="button"
           >
-            <Icon name="captions" />
+            <Icon name="captions" size={20} />
           </button>
         ) : null}
         <FullscreenButton fullscreen={fullscreen} />

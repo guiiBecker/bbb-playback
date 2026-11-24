@@ -3,7 +3,6 @@ import { defineMessages, useIntl } from 'react-intl';
 import { ID } from 'utils/constants';
 import storage from 'utils/data/storage';
 import Controls from './controls';
-import Info from './info';
 import Panel from './panel';
 import Stage from './stage';
 import { pickLocale, useTranscript } from './transcript';
@@ -14,8 +13,8 @@ const intlMessages = defineMessages({
   aria: { id: 'player.wrapper.aria', defaultMessage: 'Player area' },
 });
 
-// Redesigned layout: side panel on the left; stage, controls and recording
-// info on the right
+// Redesigned layout: side panel with the recording's details on the left; on
+// the right one dark player, the stage above the controls
 const Studio = () => {
   const intl = useIntl();
   const state = usePlayerState();
@@ -36,6 +35,7 @@ const Studio = () => {
     >
       <Panel
         captions={captions}
+        duration={state.duration}
         locale={locale}
         setLocale={setLocale}
         time={state.time}
@@ -53,7 +53,6 @@ const Studio = () => {
           fullscreen={fullscreen}
           state={state}
         />
-        <Info state={state} />
       </main>
     </div>
   );

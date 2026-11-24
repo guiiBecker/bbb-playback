@@ -40,20 +40,31 @@
   --studio-weight-light: 400;
   --studio-weight-default: 600;
   --studio-weight-hard: 700;
+
+  // The redesign's dark player and its surroundings. No design system
+  // counterpart yet, so no theme variable behind them
+  --studio-shell: #1F2328;                // around the panel and the player
+  --studio-player: #0B0D10;               // stage and controls
+  --studio-player-text: #F1F3F6;
+  --studio-player-muted: #B4BCC8;
+  --studio-player-rail: #4A515C;
+  --studio-player-hover: rgba(255, 255, 255, .12);
+  --studio-active: #E8F0FB;               // the panel item being played
 }
 
-// Layout: panel | stage, controls, info
+// Layout: panel | player (stage and controls)
 
 .studio {
-  background-color: var(--studio-page);
+  background-color: var(--studio-shell);
   box-sizing: border-box;
   color: var(--studio-text);
   display: grid;
   font-family: var(--studio-font);
-  gap: var(--studio-space-l);
-  grid-template-columns: minmax(380px, 27%) minmax(0, 1fr);
+  gap: var(--studio-space-s);
+  // Wide enough for the five tabs in one row
+  grid-template-columns: minmax(350px, 24%) minmax(0, 1fr);
   height: 100%;
-  padding: var(--studio-space-l);
+  padding: var(--studio-space-s);
   width: 100%;
 
   *,
@@ -92,44 +103,37 @@
   padding: var(--studio-space-l) var(--studio-space-l) 0;
 }
 
+// Name above the date, as a heading block
 .studio-panel-header {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
-  gap: var(--studio-space-m);
-  margin-bottom: var(--studio-space-ml);
-}
-
-.studio-logo {
-  background-image: url('../../styles/assets/logo.png');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  flex-shrink: 0;
-  height: 48px;
-  width: 48px;
+  flex-direction: column;
+  gap: var(--studio-space-xs);
+  margin-bottom: var(--studio-space-m);
 }
 
 .studio-room {
   color: var(--studio-text);
-  flex: 1;
   font-size: var(--studio-font-l);
-  font-weight: var(--studio-weight-default);
+  font-weight: var(--studio-weight-hard);
+  line-height: 1.3;
   margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .studio-date {
   color: var(--studio-muted);
-  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
   font-size: var(--studio-font-s);
+  gap: var(--studio-space-xs);
+  margin: 0;
 }
 
 .studio-tabs {
   border-bottom: 1px solid var(--studio-line);
   display: flex;
+  gap: var(--studio-space-sm);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -138,10 +142,10 @@
   background: none;
   border: none;
   color: var(--studio-muted);
-  flex: 1 0 auto;
-  font-size: var(--studio-font-m);
+  flex: 0 0 auto;
+  font-size: var(--studio-font-s);
   font-weight: var(--studio-weight-light);
-  padding: var(--studio-space-sm) var(--studio-space-xs);
+  padding: var(--studio-space-sm) 0;
   position: relative;
   white-space: nowrap;
 
@@ -151,7 +155,7 @@
 
   &.active {
     color: var(--studio-primary);
-    font-weight: var(--studio-weight-hard);
+    font-weight: var(--studio-weight-default);
 
     &::after {
       background-color: var(--studio-primary);
@@ -159,11 +163,19 @@
       bottom: -1px;
       content: '';
       height: 3px;
-      left: var(--studio-space-s);
+      left: 0;
       position: absolute;
-      right: var(--studio-space-s);
+      right: 0;
     }
   }
+}
+
+// Inside: the tab row scrolls, so it would cut an outer ring at the top and
+// bottom
+.studio .studio-tab:focus-visible {
+  border-radius: var(--studio-space-xs);
+  box-shadow: inset 0 0 0 2px var(--studio-primary);
+  outline: none;
 }
 
 .studio-panel-body {
@@ -233,8 +245,9 @@
 }
 
 .studio-paragraph {
-  border-left: 3px solid transparent;
-  padding: var(--studio-space-s) var(--studio-space-l) var(--studio-space-s) calc(var(--studio-space-l) - 3px);
+  border-radius: var(--studio-radius-small);
+  margin: 0 var(--studio-space-m) 2px;
+  padding: var(--studio-space-s) var(--studio-space-sm);
   transition: background-color .2s, opacity .2s;
 
   &.future {
@@ -242,8 +255,13 @@
   }
 
   &.current {
-    background-color: var(--studio-highlight);
-    border-left-color: var(--studio-primary);
+    background-color: var(--studio-active);
+
+    .studio-paragraph-time {
+      // The darker blue keeps 4.5:1 on the light blue
+      color: var(--studio-primary-hover);
+      font-weight: var(--studio-weight-default);
+    }
   }
 }
 
@@ -279,9 +297,10 @@
     text-decoration: underline;
   }
 
+  // The spoken cue reads like the text before it; the card around the
+  // paragraph marks the position, what is still ahead stays dimmed
   &.current {
-    color: var(--studio-primary);
-    font-weight: var(--studio-weight-default);
+    color: var(--studio-text);
   }
 
   &.future {
@@ -363,10 +382,11 @@
 }
 
 .studio-message {
-  border-left: 3px solid transparent;
+  border-radius: var(--studio-radius-small);
   display: flex;
   gap: var(--studio-space-sm);
-  padding: var(--studio-space-s) var(--studio-space-l) var(--studio-space-s) calc(var(--studio-space-l) - 3px);
+  margin: 0 var(--studio-space-m) 2px;
+  padding: var(--studio-space-s) var(--studio-space-sm);
   transition: background-color .2s, opacity .2s;
 
   &.future {
@@ -374,8 +394,7 @@
   }
 
   &.current {
-    background-color: var(--studio-highlight);
-    border-left-color: var(--studio-primary);
+    background-color: var(--studio-active);
   }
 
   &.highlight {
@@ -506,25 +525,28 @@
   margin: 0 calc(-1 * var(--studio-space-l));
   min-height: 5rem;
   padding: var(--studio-space-m) var(--studio-space-l);
+
+  // Reserved for the footer actions; no empty band until they come
+  &:empty {
+    display: none;
+  }
 }
 
-// Main column
+// Main column: stage and controls as one dark player
 
 .studio-main {
   display: grid;
-  gap: var(--studio-space-ml);
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   min-height: 0;
   min-width: 0;
 }
 
 // Fullscreen: the presentation takes all the room, the controls sit at the
-// bottom, webcams and recording info are hidden. Also overrides the
-// narrow-screen layout
+// bottom, the webcams are hidden. Also overrides the narrow-screen layout
 @mixin studio-main-fullscreen {
-  background-color: var(--studio-page);
+  background-color: var(--studio-player);
   grid-template-rows: minmax(0, 1fr) auto;
-  padding: var(--studio-space-l);
+  padding: var(--studio-space-s);
 
   .studio-stage {
     aspect-ratio: auto;
@@ -539,10 +561,6 @@
       display: none;
     }
   }
-
-  .studio-info {
-    display: none;
-  }
 }
 
 // Separate rules: a browser drops a whole selector list with a pseudo-class
@@ -555,14 +573,15 @@
   @include studio-main-fullscreen;
 }
 
+// The player's top: joins the controls below it without a seam
 .studio-stage {
-  background-color: var(--studio-stage);
-  border-radius: var(--studio-radius);
+  background-color: var(--studio-player);
+  border-radius: var(--studio-radius) var(--studio-radius) 0 0;
   display: grid;
   gap: var(--studio-space-l);
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 20%);
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 16%);
   min-height: 0;
-  padding: var(--studio-space-l);
+  padding: var(--studio-space-l) var(--studio-space-l) var(--studio-space-s);
   position: relative;
 
   &.no-video {
@@ -600,11 +619,19 @@
     height: 100%;
     width: 100%;
   }
+
+  // Rounded slide. The presentation clips to the part of the slide in view
+  // (its viewBox), so rounding that clip rounds the slide, zoomed or not. In
+  // percent of the viewBox width, the corners keep their size on screen
+  .presentation clipPath rect {
+    rx: 1.2%;
+  }
 }
 
+// A tile beside the slide, level with its middle
 .studio-webcams {
-  align-self: start;
-  border: 2px solid var(--studio-primary);
+  align-self: center;
+  border: 1px solid rgba(255, 255, 255, .45);
   border-radius: var(--studio-radius-small);
   min-height: 0;
   overflow: hidden;
@@ -635,28 +662,37 @@
   }
 }
 
-// Captions over the stage
+// Captions over the presentation. The grid area of the content is their
+// containing block; stage.js moves them up to the bottom edge of the slide or
+// the screenshare
 
 .studio-captions {
+  // Distance to the picture's edges, also used by stage.js
+  --studio-captions-inset: var(--studio-space-l);
+
   align-items: center;
-  bottom: var(--studio-space-l);
+  bottom: var(--studio-captions-inset);
   display: flex;
   flex-direction: column;
+  // All four lines: an absolutely positioned item's `auto` lines would be the
+  // stage's padding edges instead
+  grid-area: 1 / 1 / 2 / 2;
   left: 50%;
-  max-width: calc(100% - 2 * var(--studio-space-l));
+  max-width: calc(100% - 2 * var(--studio-captions-inset));
   pointer-events: none;
   position: absolute;
   transform: translateX(-50%);
   z-index: 4;
 
   span {
-    // The same dark tone as the stage, so it reads over slides and webcams
-    background-color: rgba(16, 33, 51, .85);
+    // A neutral dark grey, so it reads over slides and webcams alike
+    background-color: rgba(40, 44, 50, .92);
     border-radius: var(--studio-radius-small);
     color: var(--studio-on-primary);
-    font-size: var(--studio-font-l);
+    font-size: var(--studio-font-m);
+    font-weight: var(--studio-weight-default);
     line-height: 1.4;
-    padding: var(--studio-space-xs) var(--studio-space-sm);
+    padding: var(--studio-space-s) var(--studio-space-l);
     text-align: center;
     // The cue's own line breaks
     white-space: pre-line;
@@ -665,13 +701,20 @@
 
 // Controls
 
+// The player's bottom: the timeline across the whole width, below it play
+// and time on the left, the buttons on the right
 .studio-controls {
   align-items: center;
-  background-color: var(--studio-card);
-  border-radius: var(--studio-radius);
-  display: flex;
-  gap: var(--studio-space-s);
-  padding: var(--studio-space-sm) var(--studio-space-ml);
+  background-color: var(--studio-player);
+  border-radius: 0 0 var(--studio-radius) var(--studio-radius);
+  color: var(--studio-player-text);
+  column-gap: var(--studio-space-s);
+  display: grid;
+  grid-template-areas:
+    'timeline timeline timeline'
+    'play clock actions';
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 0 var(--studio-space-ml) var(--studio-space-sm);
 }
 
 .studio-play {
@@ -682,9 +725,10 @@
   color: var(--studio-on-primary);
   display: flex;
   flex-shrink: 0;
-  height: 3rem;
+  grid-area: play;
+  height: 2.25rem;
   justify-content: center;
-  width: 3rem;
+  width: 2.25rem;
 
   &:hover {
     background-color: var(--studio-primary-hover);
@@ -692,30 +736,32 @@
 }
 
 .studio-clock {
-  color: var(--studio-text);
+  color: var(--studio-player-text);
   flex-shrink: 0;
-  font-size: var(--studio-font-m);
+  font-size: var(--studio-font-s);
   font-variant-numeric: tabular-nums;
-  margin: 0 var(--studio-space-sm);
+  font-weight: var(--studio-weight-default);
+  grid-area: clock;
+  margin: 0 var(--studio-space-s);
   white-space: nowrap;
 }
 
 .studio-timeline {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  margin: 0 var(--studio-space-m);
-  min-width: 120px;
+  grid-area: timeline;
+  min-width: 0;
 }
 
+// Reserved for the event markers; a thin gap until they come
 .studio-markers {
-  height: 30px;
+  height: var(--studio-space-xs);
 }
 
 .studio-track {
   cursor: pointer;
   height: 22px;
-  margin-top: 6px;
+  margin-bottom: var(--studio-space-xs);
   position: relative;
   touch-action: none;
 }
@@ -731,7 +777,7 @@
 }
 
 .studio-track-rail {
-  background-color: var(--studio-rail);
+  background-color: var(--studio-player-rail);
   right: 0;
 }
 
@@ -740,20 +786,22 @@
 }
 
 .studio-track-handle {
-  background-color: var(--studio-card);
-  border: 3px solid var(--studio-primary);
+  background-color: var(--studio-primary);
+  border: 2px solid var(--studio-player-text);
   border-radius: 50%;
-  height: 18px;
+  box-shadow: 0 0 0 4px rgba(15, 112, 215, .35);
+  height: 16px;
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 18px;
+  width: 16px;
 }
 
 .studio-actions {
   align-items: center;
   display: flex;
-  gap: var(--studio-space-s);
+  gap: var(--studio-space-xs);
+  grid-area: actions;
 }
 
 .studio-control {
@@ -761,47 +809,37 @@
   background: none;
   border: none;
   border-radius: 50%;
-  color: var(--studio-muted);
+  color: var(--studio-player-text);
   display: flex;
   height: 2.5rem;
   justify-content: center;
+  padding: 0;
+  position: relative;
   width: 2.5rem;
 
   &:hover {
-    background-color: var(--studio-highlight);
-    color: var(--studio-text);
+    background-color: var(--studio-player-hover);
   }
 
-  &[aria-pressed="true"] {
-    color: var(--studio-primary);
+  // Off: dimmed. On: full white and underlined, so the state does not rest
+  // on the colour alone
+  &[aria-pressed="false"] {
+    color: var(--studio-player-muted);
+  }
+
+  &[aria-pressed="true"]::after {
+    background-color: var(--studio-primary);
+    border-radius: 1px;
+    bottom: 5px;
+    content: '';
+    height: 2px;
+    left: 30%;
+    position: absolute;
+    right: 30%;
   }
 }
 
-// Info
-
-.studio-info {
-  background-color: var(--studio-card);
-  border-radius: var(--studio-radius);
-  padding: var(--studio-space-ml) var(--studio-space-l);
-}
-
-.studio-info-title {
-  color: var(--studio-text);
-  font-size: var(--studio-font-l);
-  font-weight: var(--studio-weight-hard);
-  margin: 0;
-}
-
-.studio-info-meta {
-  color: var(--studio-muted);
-  display: flex;
-  flex-wrap: wrap;
-  font-size: var(--studio-font-s);
-  gap: var(--studio-space-s);
-  margin: var(--studio-space-xs) 0 0;
-}
-
-// Narrow screens: stage, controls and info first, the panel below
+// Narrow screens: the player first, the panel below
 
 @media (max-width: 1100px) {
   .studio {
@@ -818,7 +856,7 @@
   }
 
   .studio-main {
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto;
   }
 
   .studio-stage {
@@ -834,6 +872,10 @@
 
 // Phones: the webcams float over the slide instead of taking a column
 @media (max-width: 700px) {
+  .studio-tabs {
+    gap: var(--studio-space-s);
+  }
+
   .studio-tab {
     font-size: var(--studio-font-s);
   }
@@ -841,11 +883,6 @@
   .studio-controls {
     gap: var(--studio-space-xs);
     padding: var(--studio-space-s) var(--studio-space-sm);
-  }
-
-  .studio-play {
-    height: 2.5rem;
-    width: 2.5rem;
   }
 
   .studio-clock {
@@ -859,10 +896,11 @@
   }
 
   .studio-captions {
-    bottom: var(--studio-space-s);
+    --studio-captions-inset: var(--studio-space-s);
 
     span {
       font-size: var(--studio-font-s);
+      padding: var(--studio-space-xs) var(--studio-space-sm);
       // The cue's 32-character lines wrap again at this width: let them flow
       white-space: normal;
     }
@@ -879,13 +917,4 @@
       z-index: 3;
     }
   }
-}
-
-.studio-info-file {
-  margin-top: var(--studio-space-s);
-}
-
-.studio-info-label {
-  color: var(--studio-text);
-  font-weight: var(--studio-weight-default);
 }

@@ -9,6 +9,7 @@ import Transcript from './transcript';
 const TABS = ['transcription', 'chat', 'notes', 'chapters', 'questions'];
 
 const intlMessages = defineMessages({
+  minutes: { id: 'studio.info.minutes', defaultMessage: '{minutes} min' },
   transcription: { id: 'studio.tab.transcription', defaultMessage: 'Transcription' },
   chat: { id: 'studio.tab.chat', defaultMessage: 'Chat' },
   notes: { id: 'studio.tab.notes', defaultMessage: 'Notes' },
@@ -24,22 +25,25 @@ const initialTab = (captions) => {
   return TABS[0];
 };
 
-// Header, tabs, the selected tab's content and a footer for actions.
-// Transcription, chat and notes are in place; the other tabs and the footer actions
-// come in later steps
-const Panel = ({ captions, locale, setLocale, time, transcript }) => {
+// Header with the recording (name, date and time, duration), tabs, the
+// selected tab's content and a footer for actions. Transcription, chat and
+// notes are in place; the other tabs and the footer actions come in later steps
+const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
   const [tab, setTab] = useState(() => initialTab(captions));
-  const { name, start } = storage.metadata;
+  const { end, name, start } = storage.metadata;
+  // The media's own duration; the recording's start/end until the media loads
+  const length = duration || Math.max(0, (end - start) / 1000);
 
   return (
     <aside className="studio-panel">
       <header className="studio-panel-header">
-        <span className="studio-logo" aria-hidden="true" />
         <h1 className="studio-room">{name}</h1>
-        <span className="studio-date">
-          {intl.formatDate(new Date(start), { month: 'short', day: 'numeric', year: 'numeric' })}
-        </span>
+        <p className="studio-date">
+          <span>{intl.formatDate(new Date(start), { dateStyle: 'medium', timeStyle: 'short' })}</span>
+          <span aria-hidden="true">·</span>
+          <span>{intl.formatMessage(intlMessages.minutes, { minutes: Math.max(1, Math.round(length / 60)) })}</span>
+        </p>
       </header>
 
       <div aria-label={intl.formatMessage(intlMessages.tabs)} className="studio-tabs" role="tablist">

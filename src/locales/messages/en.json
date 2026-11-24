@@ -54,7 +54,6 @@
   "studio.controls.fullscreen": "Fullscreen",
   "studio.controls.exitFullscreen": "Exit fullscreen",
   "studio.info.minutes": "{minutes} min",
-  "studio.info.file": "Media file",
   "studio.chat.aria": "Chat messages",
   "studio.chat.empty": "No chat messages in this recording.",
   "studio.chat.edited": "(edited)",
