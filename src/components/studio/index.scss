@@ -50,6 +50,7 @@
   --studio-player-rail: #4A515C;
   --studio-player-hover: rgba(255, 255, 255, .12);
   --studio-active: #E8F0FB;               // the panel item being played
+  --studio-fullscreen: #001428;           // behind slide and webcams in fullscreen
 }
 
 // Layout: panel | player (stage and controls)
@@ -541,25 +542,35 @@
   min-width: 0;
 }
 
-// Fullscreen: the presentation takes all the room, the controls sit at the
-// bottom, the webcams are hidden. Also overrides the narrow-screen layout
+// Fullscreen: on navy, the slide large on the left and the webcams in a column
+// on its right, with wide margins; the controls sit at the bottom. Also
+// overrides the narrow-screen layout
 @mixin studio-main-fullscreen {
-  background-color: var(--studio-player);
+  background-color: var(--studio-fullscreen);
   grid-template-rows: minmax(0, 1fr) auto;
-  padding: var(--studio-space-s);
+  padding: 0 var(--studio-space-s) var(--studio-space-s);
 
   .studio-stage {
     aspect-ratio: auto;
+    background: none;
+    border-radius: 0;
+    gap: var(--studio-space-l);
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 17%);
+    padding: 6vh 5.5vw 2vh;
   }
 
-  // Hidden, not unmounted: the webcams video is the primary player and keeps
-  // the audio going. Without a presentation it stays, or nothing would show
-  .studio-stage:not(.no-presentation) {
-    grid-template-columns: minmax(0, 1fr);
+  .studio-webcams {
+    border: 2px solid rgba(255, 255, 255, .85);
+    border-radius: 10px;
+  }
 
-    .studio-webcams {
-      display: none;
-    }
+  .studio-controls {
+    background: none;
+    border-radius: 0;
+  }
+
+  .studio-captions span {
+    font-size: var(--studio-font-l);
   }
 }
 

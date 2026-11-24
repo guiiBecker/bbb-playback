@@ -135,8 +135,8 @@ const Timeline = ({ duration, time, label }) => {
   );
 };
 
-// Fullscreen for the presentation, with the controls at the bottom. Hidden
-// where the browser has no element fullscreen (iPhone)
+// Fullscreen for the presentation and the webcams, with the controls at the
+// bottom. Hidden where the browser has no element fullscreen (iPhone)
 const FullscreenButton = ({ fullscreen }) => {
   const intl = useIntl();
 
