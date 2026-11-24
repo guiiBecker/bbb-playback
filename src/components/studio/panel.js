@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import storage from 'utils/data/storage';
+import AppsPanel from './apps-panel';
 import Attendees from './attendees';
 import Chat from './chat';
 import Notes from './notes';
 import Transcript from './transcript';
 
-const TABS = ['transcription', 'chat', 'notes', 'chapters', 'questions'];
+// Plugins (questions and others) get their place in the apps tab (apps.js)
+const TABS = ['transcription', 'chat', 'notes', 'chapters', 'apps'];
 
 const intlMessages = defineMessages({
   minutes: { id: 'studio.info.minutes', defaultMessage: '{minutes} min' },
@@ -15,7 +17,7 @@ const intlMessages = defineMessages({
   chat: { id: 'studio.tab.chat', defaultMessage: 'Chat' },
   notes: { id: 'studio.tab.notes', defaultMessage: 'Notes' },
   chapters: { id: 'studio.tab.chapters', defaultMessage: 'Chapters' },
-  questions: { id: 'studio.tab.questions', defaultMessage: 'Questions' },
+  apps: { id: 'studio.tab.apps', defaultMessage: 'Apps' },
   tabs: { id: 'studio.tabs.aria', defaultMessage: 'Recording content' },
 });
 
@@ -26,9 +28,10 @@ const initialTab = (captions) => {
   return TABS[0];
 };
 
-// Header with the recording (name, date and time, duration, participants), tabs, the
-// selected tab's content and a footer for actions. Transcription, chat and
-// notes are in place; the other tabs and the footer actions come in later steps
+// Header with the recording (name, date and time, duration, participants),
+// tabs, the selected tab's content and a footer for actions. Transcription,
+// chat, notes and apps are in place; chapters and the footer actions come in
+// later steps
 const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
   const [tab, setTab] = useState(() => initialTab(captions));
@@ -76,6 +79,7 @@ const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
         ) : null}
         {tab === 'chat' ? <Chat time={time} /> : null}
         {tab === 'notes' ? <Notes /> : null}
+        {tab === 'apps' ? <AppsPanel time={time} /> : null}
       </div>
 
       <footer className="studio-panel-footer" />

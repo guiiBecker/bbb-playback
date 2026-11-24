@@ -651,6 +651,264 @@
   padding: 0 var(--studio-space-s);
 }
 
+// Apps (apps-panel.js): tiles like the BigBlueButton client's apps gallery,
+// an icon on light blue above the name
+
+.studio-apps {
+  align-content: start;
+  display: grid;
+  flex: 1;
+  gap: var(--studio-space-sm);
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  list-style: none;
+  margin: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--studio-space-m) var(--studio-space-l);
+}
+
+.studio-app-tile {
+  align-items: center;
+  background: none;
+  border: 1px solid var(--studio-line);
+  border-radius: 12px;
+  color: var(--studio-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-space-s);
+  height: 100%;
+  padding: var(--studio-space-m) var(--studio-space-s);
+  transition: background-color .15s, border-color .15s, transform .15s;
+  width: 100%;
+
+  &:hover {
+    background-color: var(--studio-active);
+    border-color: var(--studio-active);
+
+    .studio-app-icon {
+      background-color: var(--studio-primary);
+      color: var(--studio-on-primary);
+    }
+  }
+
+  &:active {
+    transform: scale(.97);
+  }
+}
+
+.studio-app-icon {
+  align-items: center;
+  background-color: var(--studio-active);
+  border-radius: 12px;
+  color: var(--studio-primary);
+  display: flex;
+  height: 2.75rem;
+  justify-content: center;
+  transition: background-color .15s, color .15s;
+  width: 2.75rem;
+}
+
+.studio-app-name {
+  font-size: var(--studio-font-s);
+  font-weight: var(--studio-weight-default);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+// An open app: a bar with the way back and its name, its content below
+.studio-app {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.studio-app-header {
+  align-items: center;
+  border-bottom: 1px solid var(--studio-line);
+  display: flex;
+  gap: var(--studio-space-s);
+  padding: var(--studio-space-s) var(--studio-space-l) var(--studio-space-s) var(--studio-space-m);
+}
+
+.studio-app-back {
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: var(--studio-radius-small);
+  // The darker blue keeps 4.5:1 on white
+  color: var(--studio-primary-hover);
+  display: flex;
+  font-size: var(--studio-font-s);
+  font-weight: var(--studio-weight-default);
+  gap: 2px;
+  min-height: 2rem;
+  padding: 0 var(--studio-space-s) 0 var(--studio-space-xs);
+
+  &:hover {
+    background-color: var(--studio-highlight);
+  }
+}
+
+.studio-app-title {
+  color: var(--studio-text);
+  font-size: var(--studio-font-m);
+  font-weight: var(--studio-weight-hard);
+  margin: 0;
+}
+
+.studio-app-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+// Polls (polls.js)
+
+.studio-poll {
+  border-radius: var(--studio-radius-small);
+  margin: 0 var(--studio-space-m) var(--studio-space-xs);
+  padding: var(--studio-space-s) var(--studio-space-sm);
+  transition: background-color .2s, opacity .2s;
+
+  &.future {
+    opacity: .5;
+  }
+
+  &.current {
+    background-color: var(--studio-active);
+  }
+}
+
+.studio-poll-header {
+  align-items: baseline;
+  display: flex;
+  gap: var(--studio-space-s);
+  justify-content: space-between;
+}
+
+.studio-poll-kind {
+  color: var(--studio-text);
+  font-size: var(--studio-font-s);
+  font-weight: var(--studio-weight-hard);
+}
+
+.studio-poll-time {
+  background: none;
+  border: none;
+  border-radius: var(--studio-space-xs);
+  color: var(--studio-muted);
+  flex-shrink: 0;
+  font-size: var(--studio-font-xs);
+  font-variant-numeric: tabular-nums;
+  padding: 0 var(--studio-space-xs);
+
+  &:hover {
+    color: var(--studio-primary);
+    text-decoration: underline;
+  }
+}
+
+.studio-poll-question {
+  color: var(--studio-text);
+  font-size: var(--studio-font-s);
+  line-height: 1.4;
+  margin: var(--studio-space-xs) 0 var(--studio-space-s);
+  overflow-wrap: anywhere;
+}
+
+.studio-poll-answers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-space-s);
+  list-style: none;
+  margin: var(--studio-space-s) 0 0;
+  padding: 0;
+}
+
+.studio-poll-answer-row {
+  color: var(--studio-text);
+  display: flex;
+  font-size: var(--studio-font-s);
+  gap: var(--studio-space-s);
+  justify-content: space-between;
+}
+
+.studio-poll-answer-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.studio-poll-answer-count {
+  color: var(--studio-muted);
+  flex-shrink: 0;
+  font-size: var(--studio-font-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.studio-poll-bar {
+  background-color: var(--studio-line);
+  border-radius: 3px;
+  height: 6px;
+  margin-top: var(--studio-space-xs);
+  overflow: hidden;
+
+  div {
+    animation: studio-poll-fill .5s ease-out;
+    background-color: var(--studio-primary);
+    border-radius: 3px;
+    height: 100%;
+    transform-origin: left;
+  }
+}
+
+// The right answer of a quiz: green and ticked, not the colour alone
+.studio-poll-answer.correct {
+  .studio-poll-answer-label {
+    font-weight: var(--studio-weight-hard);
+  }
+
+  .studio-poll-bar div {
+    background-color: #2E7D32;
+  }
+}
+
+.studio-poll-responders {
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  margin: var(--studio-space-s) 0 0;
+}
+
+@keyframes studio-poll-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-app-tile,
+  .studio-app-icon {
+    transition: none;
+  }
+
+  .studio-poll-bar div {
+    animation: none;
+  }
+}
+
+// For screen readers only
+.studio-visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .studio-panel-footer {
   border-top: 1px solid var(--studio-line);
   margin: 0 calc(-1 * var(--studio-space-l));
