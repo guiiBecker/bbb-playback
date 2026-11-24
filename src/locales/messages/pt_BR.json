@@ -62,5 +62,9 @@
   "studio.transcript.empty": "Esta gravação não tem transcrição.",
   "studio.transcript.error": "Não foi possível carregar a transcrição.",
   "studio.transcript.language": "Idioma",
-  "studio.transcript.loading": "Carregando a transcrição…"
+  "studio.transcript.loading": "Carregando a transcrição…",
+  "studio.tab.notes": "Notas",
+  "studio.notes.aria": "Notas compartilhadas",
+  "studio.notes.empty": "Nenhuma nota compartilhada nesta gravação.",
+  "studio.notes.hint": "Como estavam ao fim da reunião"
 }

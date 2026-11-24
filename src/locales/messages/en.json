@@ -63,5 +63,9 @@
   "studio.transcript.empty": "This recording has no transcription.",
   "studio.transcript.error": "The transcription could not be loaded.",
   "studio.transcript.language": "Language",
-  "studio.transcript.loading": "Loading the transcription…"
+  "studio.transcript.loading": "Loading the transcription…",
+  "studio.tab.notes": "Notes",
+  "studio.notes.aria": "Shared notes",
+  "studio.notes.empty": "No shared notes in this recording.",
+  "studio.notes.hint": "As they were when the meeting ended"
 }

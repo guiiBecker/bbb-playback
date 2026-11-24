@@ -3,13 +3,15 @@ import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import storage from 'utils/data/storage';
 import Chat from './chat';
+import Notes from './notes';
 import Transcript from './transcript';
 
-const TABS = ['transcription', 'chat', 'chapters', 'questions'];
+const TABS = ['transcription', 'chat', 'notes', 'chapters', 'questions'];
 
 const intlMessages = defineMessages({
   transcription: { id: 'studio.tab.transcription', defaultMessage: 'Transcription' },
   chat: { id: 'studio.tab.chat', defaultMessage: 'Chat' },
+  notes: { id: 'studio.tab.notes', defaultMessage: 'Notes' },
   chapters: { id: 'studio.tab.chapters', defaultMessage: 'Chapters' },
   questions: { id: 'studio.tab.questions', defaultMessage: 'Questions' },
   tabs: { id: 'studio.tabs.aria', defaultMessage: 'Recording content' },
@@ -23,7 +25,7 @@ const initialTab = (captions) => {
 };
 
 // Header, tabs, the selected tab's content and a footer for actions.
-// Transcription and chat are in place; the other tabs and the footer actions
+// Transcription, chat and notes are in place; the other tabs and the footer actions
 // come in later steps
 const Panel = ({ captions, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
@@ -67,6 +69,7 @@ const Panel = ({ captions, locale, setLocale, time, transcript }) => {
           />
         ) : null}
         {tab === 'chat' ? <Chat time={time} /> : null}
+        {tab === 'notes' ? <Notes /> : null}
       </div>
 
       <footer className="studio-panel-footer" />

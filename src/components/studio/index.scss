@@ -130,13 +130,15 @@
 .studio-tabs {
   border-bottom: 1px solid var(--studio-line);
   display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .studio-tab {
   background: none;
   border: none;
   color: var(--studio-muted);
-  flex: 1;
+  flex: 1 0 auto;
   font-size: var(--studio-font-m);
   font-weight: var(--studio-weight-light);
   padding: var(--studio-space-sm) var(--studio-space-xs);
@@ -284,6 +286,64 @@
 
   &.future {
     color: var(--studio-muted);
+  }
+}
+
+// Shared notes
+
+.studio-notes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--studio-space-m) var(--studio-space-l);
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--studio-primary);
+    outline: none;
+  }
+}
+
+.studio-notes-hint {
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  margin: 0 0 var(--studio-space-sm);
+}
+
+// Etherpad's HTML export: paragraphs are <br>-separated lines, lists are
+// <ul class="bullet"> / <ol class="number">
+.studio-notes-content {
+  color: var(--studio-text);
+  font-size: var(--studio-font-s);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+
+  h1,
+  h2,
+  h3 {
+    font-size: var(--studio-font-m);
+    margin: var(--studio-space-sm) 0 var(--studio-space-xs);
+  }
+
+  p {
+    margin: 0 0 var(--studio-space-s);
+  }
+
+  ul,
+  ol {
+    margin: var(--studio-space-xs) 0;
+    padding-left: var(--studio-space-l);
+  }
+
+  ul.indent {
+    list-style: none;
+  }
+
+  a {
+    color: var(--studio-primary);
+  }
+
+  img {
+    max-width: 100%;
   }
 }
 
@@ -737,6 +797,10 @@
 
 // Phones: the webcams float over the slide instead of taking a column
 @media (max-width: 700px) {
+  .studio-tab {
+    font-size: var(--studio-font-s);
+  }
+
   .studio-controls {
     gap: var(--studio-space-xs);
     padding: var(--studio-space-s) var(--studio-space-sm);
