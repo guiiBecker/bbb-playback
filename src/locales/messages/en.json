@@ -77,5 +77,8 @@
   "studio.marker.screenshare": "Screen sharing",
   "studio.marker.video": "{count, plural, one {# external video} other {# external videos}}",
   "studio.controls.backward": "Back {seconds} seconds",
-  "studio.controls.forward": "Forward {seconds} seconds"
+  "studio.controls.forward": "Forward {seconds} seconds",
+  "studio.controls.mute": "Mute",
+  "studio.controls.unmute": "Unmute",
+  "studio.controls.volume": "Volume"
 }

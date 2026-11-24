@@ -904,6 +904,64 @@
   grid-area: actions;
 }
 
+.studio-volume {
+  align-items: center;
+  display: flex;
+
+  // Closed until the pointer or the keyboard reaches the control
+  input[type="range"] {
+    appearance: none;
+    background: linear-gradient(
+      to right,
+      var(--studio-player-text) var(--studio-volume-level),
+      var(--studio-player-rail) var(--studio-volume-level)
+    );
+    border-radius: 2px;
+    cursor: pointer;
+    height: 4px;
+    margin: 0;
+    opacity: 0;
+    transition: opacity .15s, width .15s, margin .15s;
+    width: 0;
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      background-color: var(--studio-player-text);
+      border: none;
+      border-radius: 50%;
+      height: 12px;
+      width: 12px;
+    }
+
+    &::-moz-range-thumb {
+      background-color: var(--studio-player-text);
+      border: none;
+      border-radius: 50%;
+      height: 12px;
+      width: 12px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--studio-primary);
+      outline-offset: 4px;
+    }
+  }
+
+  &:hover input[type="range"],
+  &:focus-within input[type="range"] {
+    margin: 0 var(--studio-space-s) 0 var(--studio-space-xs);
+    opacity: 1;
+    width: 5rem;
+  }
+}
+
+// Touch screens have no hover, and the device's own buttons set the volume
+@media (hover: none) {
+  .studio-volume input[type="range"] {
+    display: none;
+  }
+}
+
 .studio-control {
   align-items: center;
   background: none;

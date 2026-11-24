@@ -14,29 +14,34 @@ const PLAYER_EVENTS = [
   'ratechange',
   'seeked',
   'timeupdate',
+  'volumechange',
 ];
 
 const readPlayer = (p) => ({
   duration: p.duration() || 0,
   hasVideo: p.videoWidth() > 0,
+  muted: p.muted(),
   paused: p.paused(),
   height: p.videoHeight(),
   rate: p.playbackRate() || 1,
   ratio: p.videoWidth() && p.videoHeight() ? p.videoWidth() / p.videoHeight() : 4 / 3,
   source: p.currentSrc() || '',
   time: p.currentTime() || 0,
+  volume: p.volume(),
   width: p.videoWidth(),
 });
 
 const INITIAL = {
   duration: 0,
   hasVideo: true,
+  muted: false,
   paused: true,
   height: 0,
   rate: 1,
   ratio: 4 / 3,
   source: '',
   time: 0,
+  volume: 1,
   width: 0,
 };
 

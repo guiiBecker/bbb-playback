@@ -1,4 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import { play, seek } from 'utils/actions';
@@ -19,6 +24,9 @@ const intlMessages = defineMessages({
   captions: { id: 'studio.controls.captions', defaultMessage: 'Captions' },
   backward: { id: 'studio.controls.backward', defaultMessage: 'Back {seconds} seconds' },
   forward: { id: 'studio.controls.forward', defaultMessage: 'Forward {seconds} seconds' },
+  mute: { id: 'studio.controls.mute', defaultMessage: 'Mute' },
+  unmute: { id: 'studio.controls.unmute', defaultMessage: 'Unmute' },
+  volume: { id: 'studio.controls.volume', defaultMessage: 'Volume' },
   fullscreen: { id: 'studio.controls.fullscreen', defaultMessage: 'Fullscreen' },
   exitFullscreen: { id: 'studio.controls.exitFullscreen', defaultMessage: 'Exit fullscreen' },
   chat: { id: 'studio.marker.chat', defaultMessage: '{count, plural, one {# chat message} other {# chat messages}}' },
@@ -196,15 +204,87 @@ const SeekButtons = () => {
   );
 };
 
-// Play, back and forward, time, timeline, speed, captions and fullscreen.
-// The volume goes in the actions slot in a later step
+// The webcams video carries the meeting's audio; a shared screen may bring
+// its own, so it follows the same volume
+const applyVolume = (volume, muted) => {
+  [player.primary, player.screenshare].filter(Boolean).forEach((p) => {
+    p.volume(volume);
+    p.muted(muted);
+  });
+};
+
+// Mute toggle, with a slider to turn the volume up and down that opens on
+// hover or keyboard focus
+const VolumeControl = ({ muted: playerMuted, volume: playerVolume }) => {
+  const intl = useIntl();
+  // Set at once on input: the player reports a change a moment later, and
+  // until then the slider would jump back to the old value, so quick presses
+  // of the arrow keys lost all but one step
+  const [level, setLevel] = useState({ muted: playerMuted, volume: playerVolume });
+  useEffect(() => {
+    setLevel({ muted: playerMuted, volume: playerVolume });
+  }, [playerMuted, playerVolume]);
+
+  const set = (volume, muted) => {
+    setLevel({ muted, volume });
+    applyVolume(volume, muted);
+  };
+
+  const { muted, volume } = level;
+  const silent = muted || volume === 0;
+  const label = intl.formatMessage(silent ? intlMessages.unmute : intlMessages.mute);
+  let icon = 'volumeHigh';
+  if (silent) icon = 'volumeMuted';
+  else if (volume < 0.5) icon = 'volumeLow';
+
+  // Unmuting at zero would stay silent: bring the volume back up
+  const toggle = () => {
+    if (silent) set(volume === 0 ? 0.5 : volume, false);
+    else set(volume, true);
+  };
+
+  const shown = silent ? 0 : volume;
+
+  return (
+    <div className="studio-volume">
+      <button
+        aria-label={label}
+        className="studio-control"
+        onClick={toggle}
+        title={label}
+        type="button"
+      >
+        <Icon name={icon} size={20} />
+      </button>
+      <input
+        aria-label={intl.formatMessage(intlMessages.volume)}
+        aria-valuetext={`${Math.round(shown * 100)}%`}
+        max={1}
+        min={0}
+        onChange={(event) => {
+          const value = parseFloat(event.target.value);
+          set(value, value === 0);
+        }}
+        step={0.05}
+        style={{ '--studio-volume-level': `${shown * 100}%` }}
+        type="range"
+        value={shown}
+      />
+    </div>
+  );
+};
+
+// Play, back and forward, time, timeline, speed, captions, volume and
+// fullscreen
 const Controls = ({ captions, fullscreen, state }) => {
   const intl = useIntl();
   const {
     duration,
+    muted,
     paused,
     rate,
     time,
+    volume,
   } = state;
 
   return (
@@ -236,6 +316,7 @@ const Controls = ({ captions, fullscreen, state }) => {
             <Icon name="captions" size={20} />
           </button>
         ) : null}
+        <VolumeControl muted={muted} volume={volume} />
         <FullscreenButton fullscreen={fullscreen} />
       </div>
     </div>

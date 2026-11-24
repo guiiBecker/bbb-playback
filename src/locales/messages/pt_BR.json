@@ -76,5 +76,8 @@
   "studio.marker.screenshare": "Compartilhamento de tela",
   "studio.marker.video": "{count, plural, one {# vídeo externo} other {# vídeos externos}}",
   "studio.controls.backward": "Voltar {seconds} segundos",
-  "studio.controls.forward": "Avançar {seconds} segundos"
+  "studio.controls.forward": "Avançar {seconds} segundos",
+  "studio.controls.mute": "Silenciar",
+  "studio.controls.unmute": "Ativar som",
+  "studio.controls.volume": "Volume"
 }
