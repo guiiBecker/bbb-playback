@@ -57,5 +57,11 @@
   "studio.chat.empty": "No chat messages in this recording.",
   "studio.chat.edited": "(edited)",
   "studio.chat.seek": "Go to {time}",
-  "studio.chat.reply": "Show the replied message"
+  "studio.chat.reply": "Show the replied message",
+  "studio.controls.captions": "Captions",
+  "studio.transcript.aria": "Transcription",
+  "studio.transcript.empty": "This recording has no transcription.",
+  "studio.transcript.error": "The transcription could not be loaded.",
+  "studio.transcript.language": "Language",
+  "studio.transcript.loading": "Loading the transcription…"
 }

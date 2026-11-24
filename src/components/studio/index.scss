@@ -200,6 +200,93 @@
   }
 }
 
+// Transcription
+
+.studio-language {
+  align-items: center;
+  border-bottom: 1px solid var(--studio-line);
+  display: flex;
+  font-size: var(--studio-font-s);
+  gap: var(--studio-space-s);
+  padding: var(--studio-space-sm) var(--studio-space-l);
+
+  select {
+    background-color: var(--studio-card);
+    border: 1px solid var(--studio-line);
+    border-radius: var(--studio-radius-small);
+    color: var(--studio-text);
+    font-family: inherit;
+    font-size: var(--studio-font-s);
+    padding: var(--studio-space-xs) var(--studio-space-s);
+  }
+}
+
+.studio-language-label {
+  color: var(--studio-muted);
+}
+
+.studio-language-name {
+  color: var(--studio-text);
+  font-weight: var(--studio-weight-default);
+}
+
+.studio-paragraph {
+  border-left: 3px solid transparent;
+  padding: var(--studio-space-s) var(--studio-space-l) var(--studio-space-s) calc(var(--studio-space-l) - 3px);
+  transition: background-color .2s, opacity .2s;
+
+  &.future {
+    opacity: .5;
+  }
+
+  &.current {
+    background-color: var(--studio-highlight);
+    border-left-color: var(--studio-primary);
+  }
+}
+
+.studio-paragraph-time {
+  background: none;
+  border: none;
+  border-radius: var(--studio-space-xs);
+  color: var(--studio-muted);
+  font-size: var(--studio-font-xs);
+  font-variant-numeric: tabular-nums;
+  margin-left: calc(-1 * var(--studio-space-xs));
+  padding: 0 var(--studio-space-xs);
+
+  &:hover {
+    color: var(--studio-primary);
+    text-decoration: underline;
+  }
+}
+
+.studio-paragraph-text {
+  color: var(--studio-text);
+  font-size: var(--studio-font-s);
+  line-height: 1.5;
+  margin: var(--studio-space-xs) 0 0;
+}
+
+.studio-cue {
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color .2s;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.current {
+    color: var(--studio-primary);
+    font-weight: var(--studio-weight-default);
+  }
+
+  &.future {
+    color: var(--studio-muted);
+  }
+}
+
 // Chat
 
 .studio-chat {
@@ -451,6 +538,34 @@
   }
 }
 
+// Captions over the stage
+
+.studio-captions {
+  align-items: center;
+  bottom: var(--studio-space-l);
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  max-width: calc(100% - 2 * var(--studio-space-l));
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 4;
+
+  span {
+    // The same dark tone as the stage, so it reads over slides and webcams
+    background-color: rgba(16, 33, 51, .85);
+    border-radius: var(--studio-radius-small);
+    color: var(--studio-on-primary);
+    font-size: var(--studio-font-l);
+    line-height: 1.4;
+    padding: var(--studio-space-xs) var(--studio-space-sm);
+    text-align: center;
+    // The cue's own line breaks
+    white-space: pre-line;
+  }
+}
+
 // Controls
 
 .studio-controls {
@@ -544,6 +659,27 @@
   gap: var(--studio-space-s);
 }
 
+.studio-control {
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--studio-muted);
+  display: flex;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+
+  &:hover {
+    background-color: var(--studio-highlight);
+    color: var(--studio-text);
+  }
+
+  &[aria-pressed="true"] {
+    color: var(--studio-primary);
+  }
+}
+
 // Info
 
 .studio-info {
@@ -601,6 +737,36 @@
 
 // Phones: the webcams float over the slide instead of taking a column
 @media (max-width: 700px) {
+  .studio-controls {
+    gap: var(--studio-space-xs);
+    padding: var(--studio-space-s) var(--studio-space-sm);
+  }
+
+  .studio-play {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .studio-clock {
+    font-size: var(--studio-font-s);
+    margin: 0 var(--studio-space-xs);
+  }
+
+  .studio-timeline {
+    margin: 0 var(--studio-space-s);
+    min-width: 0;
+  }
+
+  .studio-captions {
+    bottom: var(--studio-space-s);
+
+    span {
+      font-size: var(--studio-font-s);
+      // The cue's 32-character lines wrap again at this width: let them flow
+      white-space: normal;
+    }
+  }
+
   .studio-stage:not(.no-presentation) {
     grid-template-columns: minmax(0, 1fr);
 

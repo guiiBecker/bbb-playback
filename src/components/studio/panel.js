@@ -3,6 +3,7 @@ import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import storage from 'utils/data/storage';
 import Chat from './chat';
+import Transcript from './transcript';
 
 const TABS = ['transcription', 'chat', 'chapters', 'questions'];
 
@@ -14,11 +15,19 @@ const intlMessages = defineMessages({
   tabs: { id: 'studio.tabs.aria', defaultMessage: 'Recording content' },
 });
 
-// Header, tabs, the selected tab's content and a footer for actions. Chat is
-// in place; the other tabs and the footer actions come in later steps
-const Panel = ({ time }) => {
+// Opens on the transcription, or on the chat when only the chat has content
+const initialTab = (captions) => {
+  if (!captions.length && storage.chat && storage.chat.length) return 'chat';
+
+  return TABS[0];
+};
+
+// Header, tabs, the selected tab's content and a footer for actions.
+// Transcription and chat are in place; the other tabs and the footer actions
+// come in later steps
+const Panel = ({ captions, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
-  const [tab, setTab] = useState(TABS[0]);
+  const [tab, setTab] = useState(() => initialTab(captions));
   const { name, start } = storage.metadata;
 
   return (
@@ -47,6 +56,16 @@ const Panel = ({ time }) => {
       </div>
 
       <div className="studio-panel-body" data-tab={tab} role="tabpanel">
+        {tab === 'transcription' ? (
+          <Transcript
+            captions={captions}
+            cues={transcript.cues}
+            locale={locale}
+            setLocale={setLocale}
+            status={transcript.status}
+            time={time}
+          />
+        ) : null}
         {tab === 'chat' ? <Chat time={time} /> : null}
       </div>
 

@@ -8,6 +8,7 @@ const intlMessages = defineMessages({
   play: { id: 'studio.controls.play', defaultMessage: 'Play' },
   pause: { id: 'studio.controls.pause', defaultMessage: 'Pause' },
   timeline: { id: 'studio.controls.timeline', defaultMessage: 'Timeline' },
+  captions: { id: 'studio.controls.captions', defaultMessage: 'Captions' },
 });
 
 const Timeline = ({ duration, time, label }) => {
@@ -75,9 +76,9 @@ const Timeline = ({ duration, time, label }) => {
   );
 };
 
-// Play, time and timeline. The other buttons (seek, speed, captions, volume,
+// Play, time, timeline and captions. The other buttons (seek, speed, volume,
 // fullscreen) go in the actions slot in later steps
-const Controls = ({ state }) => {
+const Controls = ({ captions, state }) => {
   const intl = useIntl();
   const { duration, paused, time } = state;
 
@@ -95,7 +96,20 @@ const Controls = ({ state }) => {
         {formatTime(time)} / {formatTime(duration)}
       </span>
       <Timeline duration={duration} label={intl.formatMessage(intlMessages.timeline)} time={time} />
-      <div className="studio-actions" />
+      <div className="studio-actions">
+        {captions.available ? (
+          <button
+            aria-label={intl.formatMessage(intlMessages.captions)}
+            aria-pressed={captions.on}
+            className="studio-control"
+            onClick={captions.toggle}
+            title={intl.formatMessage(intlMessages.captions)}
+            type="button"
+          >
+            <Icon name="captions" />
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 };

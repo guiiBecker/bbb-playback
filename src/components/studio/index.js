@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { defineMessages, useIntl } from 'react-intl';
 import { ID } from 'utils/constants';
+import storage from 'utils/data/storage';
 import Controls from './controls';
 import Info from './info';
 import Panel from './panel';
 import Stage from './stage';
+import { pickLocale, useTranscript } from './transcript';
 import { usePlayerState } from './hooks';
 import './index.scss';
 
@@ -17,6 +19,11 @@ const intlMessages = defineMessages({
 const Studio = () => {
   const intl = useIntl();
   const state = usePlayerState();
+  const captions = storage.captions || [];
+  const [locale, setLocale] = useState(() => pickLocale(captions, intl.locale));
+  const [captionsOn, setCaptionsOn] = useState(true);
+  const transcript = useTranscript(locale);
+  const hasCaptions = transcript.cues.length > 0;
 
   return (
     <div
@@ -24,10 +31,24 @@ const Studio = () => {
       className="studio"
       id={ID.PLAYER}
     >
-      <Panel time={state.time} />
+      <Panel
+        captions={captions}
+        locale={locale}
+        setLocale={setLocale}
+        time={state.time}
+        transcript={transcript}
+      />
       <main className="studio-main">
-        <Stage hasVideo={state.hasVideo} ratio={state.ratio} />
-        <Controls state={state} />
+        <Stage
+          cues={captionsOn ? transcript.cues : null}
+          hasVideo={state.hasVideo}
+          ratio={state.ratio}
+          time={state.time}
+        />
+        <Controls
+          captions={{ available: hasCaptions, on: captionsOn, toggle: () => setCaptionsOn((on) => !on) }}
+          state={state}
+        />
         <Info state={state} />
       </main>
     </div>

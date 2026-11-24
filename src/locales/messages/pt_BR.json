@@ -56,5 +56,11 @@
   "studio.chat.empty": "Nenhuma mensagem no chat desta gravação.",
   "studio.chat.edited": "(editada)",
   "studio.chat.seek": "Ir para {time}",
-  "studio.chat.reply": "Mostrar a mensagem respondida"
+  "studio.chat.reply": "Mostrar a mensagem respondida",
+  "studio.controls.captions": "Legendas",
+  "studio.transcript.aria": "Transcrição",
+  "studio.transcript.empty": "Esta gravação não tem transcrição.",
+  "studio.transcript.error": "Não foi possível carregar a transcrição.",
+  "studio.transcript.language": "Idioma",
+  "studio.transcript.loading": "Carregando a transcrição…"
 }
