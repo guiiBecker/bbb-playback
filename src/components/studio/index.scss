@@ -1,0 +1,440 @@
+// BigBlueButton design system tokens, as implemented by
+// @bigbluebutton/bbb-ui-components-react (src/stylesheets/) and the client
+// palette (bigbluebutton-html5 .../styled-components/palette.js). Same variable
+// names and defaults, so a theme that sets them also reaches the playback
+:root {
+  // Colours
+  --studio-page: var(--color-background, #102133);
+  --studio-card: var(--color-background-white, var(--color-white, #FFFFFF));
+  --studio-stage: var(--color-content-background, #1B2A3A);
+  --studio-tile: var(--webcam-background-color, #001428FF);
+  --studio-primary: var(--color-primary, #0F70D7);           // colorBrand1
+  --studio-primary-hover: var(--color-hover-dark, #0C57A7);  // colorHoverDark
+  --studio-on-primary: var(--color-icon-white, #FFFFFF);
+  --studio-text: var(--color-text-default, #393C48);         // colorTextDefault
+  --studio-muted: var(--color-text-light, #717C91);          // colorTextLight
+  --studio-line: var(--color-neutral-4, #DCE4EC);            // colorNeutral4
+  --studio-rail: var(--color-neutral-4, #DCE4EC);            // colorNeutral4
+  --studio-focus: var(--color-border-focus-ring, rgba(29, 101, 212, .15));
+
+  // Spacing (sizing.ts)
+  --studio-space-xs: .25rem;  // 4px
+  --studio-space-s: .5rem;    // 8px
+  --studio-space-sm: .75rem;  // 12px
+  --studio-space-m: 1rem;     // 16px
+  --studio-space-ml: 1.25rem; // 20px
+  --studio-space-l: 1.5rem;   // 24px
+  --studio-space-xl: 2rem;    // 32px
+
+  // Radius (sizing.ts)
+  --studio-radius: 1rem;      // borderRadiusDefault, 16px
+  --studio-radius-small: .5rem; // borderRadiusSmall, 8px
+
+  // Typography (typography.ts)
+  --studio-font: 'Source Sans Pro', Arial, sans-serif;
+  --studio-font-xs: .75rem;   // 12px
+  --studio-font-s: .875rem;   // 14px
+  --studio-font-m: 1rem;      // 16px
+  --studio-font-l: 1.125rem;  // 18px
+  --studio-weight-light: 400;
+  --studio-weight-default: 600;
+  --studio-weight-hard: 700;
+}
+
+// Layout: panel | stage, controls, info
+
+.studio {
+  background-color: var(--studio-page);
+  box-sizing: border-box;
+  color: var(--studio-text);
+  display: grid;
+  font-family: var(--studio-font);
+  gap: var(--studio-space-l);
+  grid-template-columns: minmax(380px, 27%) minmax(0, 1fr);
+  height: 100%;
+  padding: var(--studio-space-l);
+  width: 100%;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  button:focus-visible,
+  [role="slider"]:focus-visible {
+    box-shadow: 0 0 0 4px var(--studio-focus);
+    outline: 2px solid var(--studio-primary);
+    outline-offset: 0;
+  }
+}
+
+.studio-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+// Side panel
+
+.studio-panel {
+  background-color: var(--studio-card);
+  border-radius: var(--studio-radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--studio-space-l) var(--studio-space-l) 0;
+}
+
+.studio-panel-header {
+  align-items: center;
+  display: flex;
+  gap: var(--studio-space-m);
+  margin-bottom: var(--studio-space-ml);
+}
+
+.studio-logo {
+  background-image: url('../../styles/assets/logo.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  flex-shrink: 0;
+  height: 48px;
+  width: 48px;
+}
+
+.studio-room {
+  color: var(--studio-text);
+  flex: 1;
+  font-size: var(--studio-font-l);
+  font-weight: var(--studio-weight-default);
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-date {
+  color: var(--studio-muted);
+  flex-shrink: 0;
+  font-size: var(--studio-font-s);
+}
+
+.studio-tabs {
+  border-bottom: 1px solid var(--studio-line);
+  display: flex;
+}
+
+.studio-tab {
+  background: none;
+  border: none;
+  color: var(--studio-muted);
+  flex: 1;
+  font-size: var(--studio-font-m);
+  font-weight: var(--studio-weight-light);
+  padding: var(--studio-space-sm) var(--studio-space-xs);
+  position: relative;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--studio-text);
+  }
+
+  &.active {
+    color: var(--studio-primary);
+    font-weight: var(--studio-weight-hard);
+
+    &::after {
+      background-color: var(--studio-primary);
+      border-radius: 3px 3px 0 0;
+      bottom: -1px;
+      content: '';
+      height: 3px;
+      left: var(--studio-space-s);
+      position: absolute;
+      right: var(--studio-space-s);
+    }
+  }
+}
+
+.studio-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--studio-space-m) 0;
+}
+
+.studio-panel-footer {
+  border-top: 1px solid var(--studio-line);
+  margin: 0 calc(-1 * var(--studio-space-l));
+  min-height: 5rem;
+  padding: var(--studio-space-m) var(--studio-space-l);
+}
+
+// Main column
+
+.studio-main {
+  display: grid;
+  gap: var(--studio-space-ml);
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.studio-stage {
+  background-color: var(--studio-stage);
+  border-radius: var(--studio-radius);
+  display: grid;
+  gap: var(--studio-space-l);
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 20%);
+  min-height: 0;
+  padding: var(--studio-space-l);
+  position: relative;
+
+  &.no-video {
+    grid-template-columns: minmax(0, 1fr);
+
+    .studio-webcams {
+      display: none;
+    }
+  }
+
+  &.no-presentation {
+    grid-template-columns: minmax(0, 1fr);
+
+    .studio-content {
+      display: none;
+    }
+
+    .studio-webcams {
+      align-self: stretch;
+    }
+  }
+}
+
+.studio-content {
+  border-radius: var(--studio-radius-small);
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  .content {
+    --top-content-background-color: transparent;
+    --media-background-color: transparent;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.studio-webcams {
+  align-self: start;
+  border: 2px solid var(--studio-primary);
+  border-radius: var(--studio-radius-small);
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+
+  .webcams-wrapper,
+  .video-js {
+    background-color: var(--studio-tile);
+    height: 100%;
+    width: 100%;
+  }
+}
+
+// video.js pieces the studio replaces with its own
+.studio {
+  .vjs-text-track-display,
+  .video-js .vjs-big-play-button,
+  .video-js .vjs-control-bar {
+    display: none !important;
+  }
+
+  .video-js .vjs-loading-spinner {
+    position: absolute;
+  }
+
+  .video-js {
+    cursor: default;
+  }
+}
+
+// Controls
+
+.studio-controls {
+  align-items: center;
+  background-color: var(--studio-card);
+  border-radius: var(--studio-radius);
+  display: flex;
+  gap: var(--studio-space-s);
+  padding: var(--studio-space-sm) var(--studio-space-ml);
+}
+
+.studio-play {
+  align-items: center;
+  background-color: var(--studio-primary);
+  border: none;
+  border-radius: 50%;
+  color: var(--studio-on-primary);
+  display: flex;
+  flex-shrink: 0;
+  height: 3rem;
+  justify-content: center;
+  width: 3rem;
+
+  &:hover {
+    background-color: var(--studio-primary-hover);
+  }
+}
+
+.studio-clock {
+  color: var(--studio-text);
+  flex-shrink: 0;
+  font-size: var(--studio-font-m);
+  font-variant-numeric: tabular-nums;
+  margin: 0 var(--studio-space-sm);
+  white-space: nowrap;
+}
+
+.studio-timeline {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 var(--studio-space-m);
+  min-width: 120px;
+}
+
+.studio-markers {
+  height: 30px;
+}
+
+.studio-track {
+  cursor: pointer;
+  height: 22px;
+  margin-top: 6px;
+  position: relative;
+  touch-action: none;
+}
+
+.studio-track-rail,
+.studio-track-fill {
+  border-radius: 3px;
+  height: 5px;
+  left: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.studio-track-rail {
+  background-color: var(--studio-rail);
+  right: 0;
+}
+
+.studio-track-fill {
+  background-color: var(--studio-primary);
+}
+
+.studio-track-handle {
+  background-color: var(--studio-card);
+  border: 3px solid var(--studio-primary);
+  border-radius: 50%;
+  height: 18px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+}
+
+.studio-actions {
+  align-items: center;
+  display: flex;
+  gap: var(--studio-space-s);
+}
+
+// Info
+
+.studio-info {
+  background-color: var(--studio-card);
+  border-radius: var(--studio-radius);
+  padding: var(--studio-space-ml) var(--studio-space-l);
+}
+
+.studio-info-title {
+  color: var(--studio-text);
+  font-size: var(--studio-font-l);
+  font-weight: var(--studio-weight-hard);
+  margin: 0;
+}
+
+.studio-info-meta {
+  color: var(--studio-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--studio-font-s);
+  gap: var(--studio-space-s);
+  margin: var(--studio-space-xs) 0 0;
+}
+
+// Narrow screens: stage, controls and info first, the panel below
+
+@media (max-width: 1100px) {
+  .studio {
+    gap: var(--studio-space-sm);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(420px, 70vh);
+    height: auto;
+    min-height: 100%;
+    padding: var(--studio-space-sm);
+  }
+
+  .studio-panel {
+    order: 2;
+  }
+
+  .studio-main {
+    grid-template-rows: auto auto auto;
+  }
+
+  .studio-stage {
+    aspect-ratio: 16 / 9;
+    gap: var(--studio-space-sm);
+    padding: var(--studio-space-sm);
+  }
+
+  body:has(.studio) {
+    overflow: auto;
+  }
+}
+
+// Phones: the webcams float over the slide instead of taking a column
+@media (max-width: 700px) {
+  .studio-stage:not(.no-presentation) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .studio-webcams {
+      position: absolute;
+      right: var(--studio-space-s);
+      top: var(--studio-space-s);
+      width: 32%;
+      z-index: 3;
+    }
+  }
+}
+
+.studio-info-file {
+  margin-top: var(--studio-space-s);
+}
+
+.studio-info-label {
+  color: var(--studio-text);
+  font-weight: var(--studio-weight-default);
+}

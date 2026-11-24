@@ -41,5 +41,15 @@
   "player.search.modal.title": "Procurar",
   "player.search.modal.subtitle": "Encontre o conteúdo dos slides da apresentação",
   "player.thumbnails.wrapper.aria": "Área das miniaturas",
-  "player.webcams.wrapper.aria": "Área das câmeras"
+  "player.webcams.wrapper.aria": "Área das câmeras",
+  "studio.tab.transcription": "Transcrição",
+  "studio.tab.chat": "Chat",
+  "studio.tab.chapters": "Capítulos",
+  "studio.tab.questions": "Perguntas",
+  "studio.tabs.aria": "Conteúdo da gravação",
+  "studio.controls.play": "Reproduzir",
+  "studio.controls.pause": "Pausar",
+  "studio.controls.timeline": "Linha do tempo",
+  "studio.info.minutes": "{minutes} min",
+  "studio.info.file": "Arquivo de mídia"
 }

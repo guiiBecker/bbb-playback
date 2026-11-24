@@ -8,6 +8,7 @@ import Data from './data';
 import Dots from './dots';
 import Error from 'components/error';
 import Player from 'components/player';
+import Studio from 'components/studio';
 import {
   ERROR,
   ID,
@@ -17,6 +18,7 @@ import layout from 'utils/layout';
 import logger from 'utils/logger';
 import {
   getLayout,
+  getSearchParam,
   parseRecordId,
 } from 'utils/params';
 import './index.scss';
@@ -65,7 +67,10 @@ const Loader = ({ match }) => {
   if (loaded) {
     layout.mode = getLayout();
 
-    return <Player />;
+    // The redesigned interface; ?ui=classic keeps the previous one
+    if (getSearchParam('ui') === 'classic') return <Player />;
+
+    return <Studio />;
   }
 
   return (
