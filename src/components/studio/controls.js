@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
+import { shortcuts } from 'config';
 import { play, seek } from 'utils/actions';
 import player from 'utils/player';
 import Icon from './icon';
@@ -13,9 +14,9 @@ import { buildMarkers, buildSegments, TYPES } from './markers';
 import Speed from './speed';
 import { formatTime, seekTo as setTime } from './utils';
 
-// The back and forward buttons' step, also the timeline's arrow keys. The
-// classic player's 15 s shortcut stays as it is
-const SEEK_STEP = 5;
+// The timeline's arrow keys move by this; the back and forward buttons by the
+// seek shortcut's step (15 s), as in the classic player
+const ARROW_STEP = 5;
 
 const intlMessages = defineMessages({
   play: { id: 'studio.controls.play', defaultMessage: 'Play' },
@@ -111,7 +112,7 @@ const Timeline = ({ duration, time, label }) => {
   };
 
   const onKeyDown = (event) => {
-    const step = { ArrowLeft: -SEEK_STEP, ArrowRight: SEEK_STEP }[event.key];
+    const step = { ArrowLeft: -ARROW_STEP, ArrowRight: ARROW_STEP }[event.key];
     if (step) {
       event.preventDefault();
       setTime(Math.min(duration, Math.max(0, time + step)));
@@ -177,7 +178,7 @@ const FullscreenButton = ({ fullscreen }) => {
 // Back and forward by a fixed step
 const SeekButtons = () => {
   const intl = useIntl();
-  const seconds = SEEK_STEP;
+  const { seconds } = shortcuts.seek;
   const step = (direction) => {
     if (player.primary) seek(direction * seconds);
   };
