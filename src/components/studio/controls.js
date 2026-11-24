@@ -4,6 +4,7 @@ import { defineMessages, useIntl } from 'react-intl';
 import { play } from 'utils/actions';
 import Icon from './icon';
 import { buildMarkers, buildSegments, TYPES } from './markers';
+import Speed from './speed';
 import { formatTime, seekTo as setTime } from './utils';
 
 const intlMessages = defineMessages({
@@ -158,11 +159,16 @@ const FullscreenButton = ({ fullscreen }) => {
   );
 };
 
-// Play, time, timeline, captions and fullscreen. The other buttons (seek,
-// speed, volume) go in the actions slot in later steps
+// Play, time, timeline, speed, captions and fullscreen. The other buttons
+// (seek, volume) go in the actions slot in later steps
 const Controls = ({ captions, fullscreen, state }) => {
   const intl = useIntl();
-  const { duration, paused, time } = state;
+  const {
+    duration,
+    paused,
+    rate,
+    time,
+  } = state;
 
   return (
     <div className="studio-controls">
@@ -179,6 +185,7 @@ const Controls = ({ captions, fullscreen, state }) => {
       </span>
       <Timeline duration={duration} label={intl.formatMessage(intlMessages.timeline)} time={time} />
       <div className="studio-actions">
+        <Speed rate={rate} />
         {captions.available ? (
           <button
             aria-label={intl.formatMessage(intlMessages.captions)}

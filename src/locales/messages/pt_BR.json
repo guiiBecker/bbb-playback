@@ -52,6 +52,8 @@
   "studio.controls.timeline": "Linha do tempo",
   "studio.controls.fullscreen": "Tela cheia",
   "studio.controls.exitFullscreen": "Sair da tela cheia",
+  "studio.controls.speed": "Velocidade de reprodução",
+  "studio.controls.speedValue": "Velocidade de reprodução {rate}",
   "studio.info.minutes": "{minutes} min",
   "studio.chat.aria": "Mensagens do chat",
   "studio.chat.empty": "Nenhuma mensagem no chat desta gravação.",

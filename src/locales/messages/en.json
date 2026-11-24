@@ -53,6 +53,8 @@
   "studio.controls.timeline": "Timeline",
   "studio.controls.fullscreen": "Fullscreen",
   "studio.controls.exitFullscreen": "Exit fullscreen",
+  "studio.controls.speed": "Playback speed",
+  "studio.controls.speedValue": "Playback speed {rate}",
   "studio.info.minutes": "{minutes} min",
   "studio.chat.aria": "Chat messages",
   "studio.chat.empty": "No chat messages in this recording.",

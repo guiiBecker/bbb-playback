@@ -933,6 +933,174 @@
   }
 }
 
+// Speed (speed.js): the current one on a small round badge, the list opens
+// above it
+
+.studio-speed {
+  position: relative;
+}
+
+// A circle for "1x", a short pill for "1,5x"
+.studio-speed-button {
+  align-items: center;
+  background-color: rgba(255, 255, 255, .14);
+  border: none;
+  border-radius: .875rem;
+  color: var(--studio-player-text);
+  display: inline-flex;
+  font-size: var(--studio-font-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--studio-weight-hard);
+  height: 1.75rem;
+  justify-content: center;
+  margin: 0 var(--studio-space-xs);
+  min-width: 1.75rem;
+  padding: 0 .3rem;
+  transition: background-color .15s, transform .15s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, .24);
+  }
+
+  &:active {
+    transform: scale(.9);
+  }
+
+  // Open: lit, like the list belongs to it
+  &[aria-expanded="true"] {
+    background-color: var(--studio-primary);
+  }
+}
+
+.studio-speed-value {
+  display: inline-block;
+
+  // After a choice the new value pops in
+  &.pop {
+    animation: studio-speed-pop .35s cubic-bezier(.2, .9, .3, 1.4);
+  }
+}
+
+@keyframes studio-speed-pop {
+  from {
+    opacity: 0;
+    transform: scale(.4) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.studio-speed-list {
+  // Springs up out of the badge
+  animation: studio-speed-open .22s cubic-bezier(.2, .9, .3, 1.2);
+  background-color: var(--studio-player);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: var(--studio-radius-small);
+  bottom: calc(100% + var(--studio-space-s));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  left: 50%;
+  list-style: none;
+  margin: 0;
+  min-width: 5.5rem;
+  padding: var(--studio-space-xs);
+  position: absolute;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  // Above the stage and its captions
+  z-index: 10;
+
+  // The speeds follow one after the other, from the badge upwards
+  li {
+    animation: studio-speed-item .2s ease-out both;
+  }
+
+  @for $i from 1 through 5 {
+    li:nth-last-child(#{$i}) {
+      animation-delay: #{($i - 1) * 30}ms;
+    }
+  }
+}
+
+@keyframes studio-speed-open {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes studio-speed-item {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-speed-button,
+  .studio-speed-option::before {
+    transition: none;
+  }
+
+  .studio-speed-value.pop,
+  .studio-speed-list,
+  .studio-speed-list li {
+    animation: none;
+  }
+}
+
+.studio-speed-option {
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: var(--studio-space-xs);
+  color: var(--studio-player-text);
+  display: flex;
+  font-size: var(--studio-font-s);
+  font-variant-numeric: tabular-nums;
+  gap: var(--studio-space-s);
+  min-height: 2rem;
+  padding: 0 var(--studio-space-sm) 0 var(--studio-space-s);
+  width: 100%;
+
+  // Room for the mark of the current speed
+  &::before {
+    border-radius: 50%;
+    content: '';
+    flex-shrink: 0;
+    height: 6px;
+    transform: scale(0);
+    transition: transform .2s cubic-bezier(.2, .9, .3, 1.4);
+    width: 6px;
+  }
+
+  &:hover {
+    background-color: var(--studio-player-hover);
+  }
+
+  // The current speed: a dot and bold, not the colour alone
+  &[aria-pressed="true"] {
+    font-weight: var(--studio-weight-hard);
+
+    &::before {
+      background-color: var(--studio-primary);
+      transform: scale(1);
+    }
+  }
+}
+
 // Narrow screens: the player first, the panel below
 
 @media (max-width: 1100px) {

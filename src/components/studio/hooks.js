@@ -11,6 +11,7 @@ const PLAYER_EVENTS = [
   'loadedmetadata',
   'pause',
   'play',
+  'ratechange',
   'seeked',
   'timeupdate',
 ];
@@ -20,6 +21,7 @@ const readPlayer = (p) => ({
   hasVideo: p.videoWidth() > 0,
   paused: p.paused(),
   height: p.videoHeight(),
+  rate: p.playbackRate() || 1,
   ratio: p.videoWidth() && p.videoHeight() ? p.videoWidth() / p.videoHeight() : 4 / 3,
   source: p.currentSrc() || '',
   time: p.currentTime() || 0,
@@ -31,6 +33,7 @@ const INITIAL = {
   hasVideo: true,
   paused: true,
   height: 0,
+  rate: 1,
   ratio: 4 / 3,
   source: '',
   time: 0,
