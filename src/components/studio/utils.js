@@ -1,3 +1,4 @@
+import logger from 'utils/logger';
 import player from 'utils/player';
 
 const pad = (value) => String(value).padStart(2, '0');
@@ -16,7 +17,36 @@ const seekTo = (time) => {
   if (player.primary) player.primary.currentTime(time);
 };
 
+// Element fullscreen. Safari before 16.4 only has the webkit-prefixed API,
+// the iPhone has none for elements other than video
+const getFullscreenElement = () => (
+  document.fullscreenElement || document.webkitFullscreenElement || null
+);
+
+const isFullscreenSupported = () => Boolean(
+  document.fullscreenEnabled || document.webkitFullscreenEnabled
+);
+
+const toggleFullscreen = (element) => {
+  let request;
+  if (getFullscreenElement()) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) request = exit.call(document);
+  } else if (element) {
+    const enter = element.requestFullscreen || element.webkitRequestFullscreen;
+    if (enter) request = enter.call(element);
+  }
+
+  // The standard API returns a promise that rejects when the browser refuses
+  if (request && typeof request.catch === 'function') {
+    request.catch((error) => logger.warn('studio', 'fullscreen', error));
+  }
+};
+
 export {
   formatTime,
+  getFullscreenElement,
+  isFullscreenSupported,
   seekTo,
+  toggleFullscreen,
 };

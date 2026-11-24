@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 import player from 'utils/player';
+import {
+  getFullscreenElement,
+  isFullscreenSupported,
+  toggleFullscreen,
+} from './utils';
 
 const PLAYER_EVENTS = [
   'durationchange',
@@ -69,4 +74,37 @@ const usePlayerState = () => {
   return state;
 };
 
-export { usePlayerState };
+const FULLSCREEN_EVENTS = [
+  'fullscreenchange',
+  'webkitfullscreenchange',
+];
+
+// Fullscreen state of the element in `ref`. Follows the browser events, so
+// leaving with Escape or the browser's own controls updates it as well
+const useFullscreen = (ref) => {
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      setActive(Boolean(ref.current) && getFullscreenElement() === ref.current);
+    };
+
+    FULLSCREEN_EVENTS.forEach((event) => document.addEventListener(event, update));
+    update();
+
+    return () => {
+      FULLSCREEN_EVENTS.forEach((event) => document.removeEventListener(event, update));
+    };
+  }, [ref]);
+
+  return {
+    active,
+    supported: isFullscreenSupported(),
+    toggle: () => toggleFullscreen(ref.current),
+  };
+};
+
+export {
+  useFullscreen,
+  usePlayerState,
+};

@@ -9,6 +9,8 @@ const intlMessages = defineMessages({
   pause: { id: 'studio.controls.pause', defaultMessage: 'Pause' },
   timeline: { id: 'studio.controls.timeline', defaultMessage: 'Timeline' },
   captions: { id: 'studio.controls.captions', defaultMessage: 'Captions' },
+  fullscreen: { id: 'studio.controls.fullscreen', defaultMessage: 'Fullscreen' },
+  exitFullscreen: { id: 'studio.controls.exitFullscreen', defaultMessage: 'Exit fullscreen' },
 });
 
 const Timeline = ({ duration, time, label }) => {
@@ -76,9 +78,32 @@ const Timeline = ({ duration, time, label }) => {
   );
 };
 
-// Play, time, timeline and captions. The other buttons (seek, speed, volume,
-// fullscreen) go in the actions slot in later steps
-const Controls = ({ captions, state }) => {
+// Fullscreen for the presentation, with the controls at the bottom. Hidden
+// where the browser has no element fullscreen (iPhone)
+const FullscreenButton = ({ fullscreen }) => {
+  const intl = useIntl();
+
+  if (!fullscreen.supported) return null;
+
+  const { active, toggle } = fullscreen;
+  const label = intl.formatMessage(active ? intlMessages.exitFullscreen : intlMessages.fullscreen);
+
+  return (
+    <button
+      aria-label={label}
+      className="studio-control"
+      onClick={toggle}
+      title={label}
+      type="button"
+    >
+      <Icon name={active ? 'fullscreenExit' : 'fullscreen'} />
+    </button>
+  );
+};
+
+// Play, time, timeline, captions and fullscreen. The other buttons (seek,
+// speed, volume) go in the actions slot in later steps
+const Controls = ({ captions, fullscreen, state }) => {
   const intl = useIntl();
   const { duration, paused, time } = state;
 
@@ -109,6 +134,7 @@ const Controls = ({ captions, state }) => {
             <Icon name="captions" />
           </button>
         ) : null}
+        <FullscreenButton fullscreen={fullscreen} />
       </div>
     </div>
   );

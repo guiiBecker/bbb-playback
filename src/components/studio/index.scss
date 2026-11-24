@@ -518,6 +518,43 @@
   min-width: 0;
 }
 
+// Fullscreen: the presentation takes all the room, the controls sit at the
+// bottom, webcams and recording info are hidden. Also overrides the
+// narrow-screen layout
+@mixin studio-main-fullscreen {
+  background-color: var(--studio-page);
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: var(--studio-space-l);
+
+  .studio-stage {
+    aspect-ratio: auto;
+  }
+
+  // Hidden, not unmounted: the webcams video is the primary player and keeps
+  // the audio going. Without a presentation it stays, or nothing would show
+  .studio-stage:not(.no-presentation) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .studio-webcams {
+      display: none;
+    }
+  }
+
+  .studio-info {
+    display: none;
+  }
+}
+
+// Separate rules: a browser drops a whole selector list with a pseudo-class
+// it does not know (Safari before 16.4 only has the prefixed one)
+.studio-main:fullscreen {
+  @include studio-main-fullscreen;
+}
+
+.studio-main:-webkit-full-screen {
+  @include studio-main-fullscreen;
+}
+
 .studio-stage {
   background-color: var(--studio-stage);
   border-radius: var(--studio-radius);

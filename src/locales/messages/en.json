@@ -51,6 +51,8 @@
   "studio.controls.play": "Play",
   "studio.controls.pause": "Pause",
   "studio.controls.timeline": "Timeline",
+  "studio.controls.fullscreen": "Fullscreen",
+  "studio.controls.exitFullscreen": "Exit fullscreen",
   "studio.info.minutes": "{minutes} min",
   "studio.info.file": "Media file",
   "studio.chat.aria": "Chat messages",
