@@ -20,7 +20,7 @@ const Studio = () => {
   const player = usePlayerState();
   // The recording's own length until the media reports one (or when it cannot
   // be decoded), so the timeline and its markers are there from the start
-  const { end, start } = storage.metadata;
+  const { end, name, start } = storage.metadata;
   const state = { ...player, duration: player.duration || Math.max(0, (end - start) / 1000) };
   const captions = storage.captions || [];
   const [locale, setLocale] = useState(() => pickLocale(captions, intl.locale));
@@ -46,6 +46,9 @@ const Studio = () => {
         transcript={transcript}
       />
       <main className="studio-main" ref={main}>
+        {/* Phones only, see index.scss. Hidden from screen readers: the
+            panel's heading below says the same */}
+        <p aria-hidden="true" className="studio-player-title">{name}</p>
         <Stage
           cues={captionsOn ? transcript.cues : null}
           hasVideo={state.hasVideo}
