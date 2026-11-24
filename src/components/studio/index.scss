@@ -973,6 +973,7 @@
   justify-content: center;
   padding: 0;
   position: relative;
+  transition: background-color .15s, color .2s;
   width: 2.5rem;
 
   &:hover {
@@ -985,7 +986,10 @@
     color: var(--studio-player-muted);
   }
 
-  &[aria-pressed="true"]::after {
+  // The underline of a toggle (captions): stretches out from the middle with
+  // a little spring when switched on, shrinks back quickly when off, and
+  // widens a bit on hover
+  &[aria-pressed]::after {
     background-color: var(--studio-primary);
     border-radius: 1px;
     bottom: 5px;
@@ -994,6 +998,40 @@
     left: 30%;
     position: absolute;
     right: 30%;
+    transform: scaleX(0);
+    transition: transform .15s ease-in;
+  }
+
+  &[aria-pressed="true"]::after {
+    transform: scaleX(1);
+    transition: transform .3s cubic-bezier(.2, .9, .3, 1.25);
+  }
+
+  &[aria-pressed="true"]:hover::after {
+    transform: scaleX(1.15);
+  }
+}
+
+// Fullscreen: the icon grows a little on hover and gives way when pressed
+.studio-fullscreen {
+  .studio-icon {
+    transition: transform .2s cubic-bezier(.2, .9, .3, 1.4);
+  }
+
+  &:hover .studio-icon {
+    transform: scale(1.15);
+  }
+
+  &:active .studio-icon {
+    transform: scale(.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-control,
+  .studio-control::after,
+  .studio-fullscreen .studio-icon {
+    transition: none !important;
   }
 }
 

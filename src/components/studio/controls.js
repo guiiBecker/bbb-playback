@@ -165,7 +165,7 @@ const FullscreenButton = ({ fullscreen }) => {
   return (
     <button
       aria-label={label}
-      className="studio-control"
+      className="studio-control studio-fullscreen"
       onClick={toggle}
       title={label}
       type="button"
