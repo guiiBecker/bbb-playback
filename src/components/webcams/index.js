@@ -65,7 +65,8 @@ const buildTracks = () => {
   });
 };
 
-const buildOptions = (sources, tracks) => {
+// `minimal` drops the video.js control bar, for layouts that bring their own
+const buildOptions = (sources, tracks, minimal) => {
   return {
     controlBar: {
       fullscreenToggle: false,
@@ -75,7 +76,7 @@ const buildOptions = (sources, tracks) => {
         vertical: true,
       },
     },
-    controls: true,
+    controls: !minimal,
     fill: true,
     html5: {
       // video.js only adds the `tracks` below when it renders the captions
@@ -101,10 +102,12 @@ const dispatchTimeUpdate = (time) => {
   document.dispatchEvent(event);
 };
 
-const Webcams = () => {
+const Webcams = ({ minimal = false }) => {
   const intl = useIntl();
   const sources = useRef(buildSources());
   const tracks = useRef(buildTracks());
+  // Read once: the player is created on mount only
+  const bare = useRef(minimal);
   const element = useRef();
   const interval = useRef();
   const lastProgressSave = useRef(0);
@@ -114,7 +117,7 @@ const Webcams = () => {
       const video = element.current;
       if (!video) return;
 
-      player.webcams = videojs(video, buildOptions(sources, tracks), () => {
+      player.webcams = videojs(video, buildOptions(sources, tracks, bare.current), () => {
         const recordId = storage.metadata.id;
 
         player.webcams.on('play', () => {

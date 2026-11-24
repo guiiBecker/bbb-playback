@@ -22,6 +22,8 @@ const Content = ({
   swap,
   toggleFullscreen,
   hidePresentation,
+  // Only the presentation or screenshare: no fullscreen button, no thumbnails
+  minimal = false,
 }) => {
   const {
     index,
@@ -53,12 +55,14 @@ const Content = ({
   // remounting would start a new screenshare player out of sync
   return (
     <div className={cx('content', { 'swapped-content': swap, 'hidden-content': hidePresentation })}>
-      <FullscreenButton
-        content={LAYOUT.CONTENT}
-        fullscreen={fullscreen}
-        swap={swap}
-        toggleFullscreen={toggleFullscreen}
-      />
+      {minimal ? null : (
+        <FullscreenButton
+          content={LAYOUT.CONTENT}
+          fullscreen={fullscreen}
+          swap={swap}
+          toggleFullscreen={toggleFullscreen}
+        />
+      )}
       <div className="top-content">
         {presentation}
         {layout.screenshare ? (
@@ -75,7 +79,7 @@ const Content = ({
           </span>
         ) : null}
       </div>
-      {hidePresentation ? null : (
+      {hidePresentation || minimal ? null : (
         <Bottom
           fullscreen={fullscreen}
           handleSearch={handleSearch}
