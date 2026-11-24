@@ -1,11 +1,11 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
+import { player as config } from 'config';
 import player from 'utils/player';
 
-// The speeds the studio offers. The classic player keeps its own list
-// (config.js, player.rates)
-const SPEEDS = [0.5, 1, 1.5, 2, 3];
+// The classic player's speeds (config.js, player.rates) and 3x on top
+const SPEEDS = [...new Set([...config.rates, 3])].sort((a, b) => a - b);
 
 const NAVIGATION_KEYS = ['ArrowDown', 'ArrowUp', 'End', 'Home'];
 

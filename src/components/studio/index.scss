@@ -1076,14 +1076,15 @@
   // Above the stage and its captions
   z-index: 10;
 
-  // The speeds follow one after the other, from the badge upwards
+  // The speeds follow one after the other, from the badge upwards. Room for
+  // a longer list than config.js has
   li {
     animation: studio-speed-item .2s ease-out both;
   }
 
-  @for $i from 1 through 5 {
+  @for $i from 1 through 10 {
     li:nth-last-child(#{$i}) {
-      animation-delay: #{($i - 1) * 30}ms;
+      animation-delay: #{($i - 1) * 22}ms;
     }
   }
 }
