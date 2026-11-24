@@ -24,7 +24,9 @@ const collectEvents = (duration) => {
 
   (storage.chat || []).forEach((message) => add('chat', message.timestamp));
   (storage.polls || []).forEach((poll) => add('poll', poll.timestamp));
-  (storage.videos || []).forEach((video) => add('video', video.timestamp));
+  // A stop with no start (the recording began with the video already
+  // stopped) publishes an entry with no URL: not a video
+  (storage.videos || []).filter((video) => video.url).forEach((video) => add('video', video.timestamp));
   (storage.screenshare || []).forEach((share) => add('screenshare', share.timestamp));
 
   // A slide change is a new image in shapes.svg; screen sharing shows up there
