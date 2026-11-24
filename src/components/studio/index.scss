@@ -153,6 +153,21 @@
     background-color: var(--studio-highlight);
     color: var(--studio-text);
   }
+
+  // The avatars lift one after the other: the row can be opened
+  .studio-avatar {
+    transition: transform .2s cubic-bezier(.2, .9, .3, 1.5);
+  }
+
+  @for $i from 2 through 6 {
+    .studio-avatar:nth-child(#{$i}) {
+      transition-delay: #{($i - 1) * 30}ms;
+    }
+  }
+
+  &:hover .studio-avatar {
+    transform: translateY(-2px);
+  }
 }
 
 .studio-avatars {
@@ -174,8 +189,10 @@
   width: 1.5rem;
 }
 
-// The participant list, a small dialog under the attendees row
+// The participant list, a small dialog under the attendees row. It unfolds
+// from the avatars with a little spring, the names follow one after the other
 .studio-participants {
+  animation: studio-participants-open .22s cubic-bezier(.2, .9, .3, 1.2);
   background-color: var(--studio-card);
   border: 1px solid var(--studio-line);
   border-radius: var(--studio-radius-small);
@@ -187,8 +204,21 @@
   outline: none;
   position: absolute;
   top: 100%;
+  transform-origin: 1.5rem 0;
   width: 18rem;
   z-index: 20;
+}
+
+@keyframes studio-participants-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .studio-participants-header {
@@ -213,11 +243,14 @@
   font-size: var(--studio-font-l);
   height: 2rem;
   line-height: 1;
+  transition: background-color .15s, color .15s, transform .25s cubic-bezier(.2, .9, .3, 1.4);
   width: 2rem;
 
+  // The cross turns a quarter on hover
   &:hover {
     background-color: var(--studio-highlight);
     color: var(--studio-text);
+    transform: rotate(90deg);
   }
 }
 
@@ -230,9 +263,33 @@
 
   li {
     align-items: center;
+    animation: studio-participant-in .25s ease-out both;
     display: flex;
     gap: var(--studio-space-s);
     padding: var(--studio-space-xs) var(--studio-space-m);
+  }
+
+  // A longer list than fits at once: the rest comes in together
+  @for $i from 2 through 8 {
+    li:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 35}ms;
+    }
+  }
+
+  li:nth-child(n + 9) {
+    animation-delay: 280ms;
+  }
+}
+
+@keyframes studio-participant-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -278,10 +335,33 @@
   font-weight: var(--studio-weight-light);
   padding: var(--studio-space-sm) 0;
   position: relative;
+  transition: color .15s;
   white-space: nowrap;
+
+  // The underline, like the captions button's: it stretches out from the
+  // middle with a little spring on the tab being opened while the old one
+  // shrinks away; hovering another tab hints at it in grey
+  &::after {
+    background-color: var(--studio-primary);
+    border-radius: 3px 3px 0 0;
+    bottom: -1px;
+    content: '';
+    height: 3px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    transform: scaleX(0);
+    transition: transform .15s ease-in, background-color .15s;
+  }
 
   &:hover {
     color: var(--studio-text);
+
+    &:not(.active)::after {
+      background-color: var(--studio-line);
+      transform: scaleX(.5);
+      transition: transform .25s cubic-bezier(.2, .9, .3, 1.25), background-color .15s;
+    }
   }
 
   &.active {
@@ -289,14 +369,8 @@
     font-weight: var(--studio-weight-default);
 
     &::after {
-      background-color: var(--studio-primary);
-      border-radius: 3px 3px 0 0;
-      bottom: -1px;
-      content: '';
-      height: 3px;
-      left: 0;
-      position: absolute;
-      right: 0;
+      transform: scaleX(1);
+      transition: transform .35s cubic-bezier(.2, .9, .3, 1.25);
     }
   }
 }
@@ -1351,7 +1425,35 @@
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
+  transition: transform .2s cubic-bezier(.2, .9, .3, 1.5), box-shadow .2s;
   width: 16px;
+}
+
+// The handle grows on hover and when the track has the focus, more while it
+// is dragged, with a wider halo, and springs back when let go
+.studio-track:hover .studio-track-handle,
+.studio-track:focus-visible .studio-track-handle {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.studio-track.dragging .studio-track-handle {
+  box-shadow: 0 0 0 8px rgba(15, 112, 215, .3);
+  transform: translate(-50%, -50%) scale(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-track-handle,
+  .studio-tab,
+  .studio-tab::after,
+  .studio-attendees-trigger .studio-avatar,
+  .studio-participants-close {
+    transition: none !important;
+  }
+
+  .studio-participants,
+  .studio-participants-list li {
+    animation: none !important;
+  }
 }
 
 .studio-actions {

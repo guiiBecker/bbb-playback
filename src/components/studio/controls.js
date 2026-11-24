@@ -131,7 +131,9 @@ const Timeline = ({ duration, time, label }) => {
         aria-valuemin={0}
         aria-valuenow={Math.floor(shown)}
         aria-valuetext={`${formatTime(shown)} / ${formatTime(duration)}`}
-        className="studio-track"
+        // While dragging the handle grows (index.scss); :active alone misses
+        // touch screens
+        className={cx('studio-track', { dragging: dragTime !== null })}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
