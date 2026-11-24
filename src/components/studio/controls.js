@@ -296,7 +296,8 @@ const Controls = ({ captions, fullscreen, state }) => {
         onClick={() => play()}
         type="button"
       >
-        <Icon name={paused ? 'play' : 'pause'} size={18} />
+        {/* A new icon on every change, so it pops in (index.scss) */}
+        <Icon key={paused ? 'play' : 'pause'} name={paused ? 'play' : 'pause'} size={18} />
       </button>
       <SeekButtons />
       <span className="studio-clock">

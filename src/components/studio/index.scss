@@ -784,10 +784,35 @@
   grid-area: play;
   height: 2.25rem;
   justify-content: center;
+  transition: background-color .15s, box-shadow .2s, transform .2s cubic-bezier(.2, .9, .3, 1.4);
   width: 2.25rem;
 
+  // Grows a little with a soft glow, gives way when pressed
   &:hover {
     background-color: var(--studio-primary-hover);
+    box-shadow: 0 0 0 6px rgba(15, 112, 215, .25);
+    transform: scale(1.06);
+  }
+
+  &:active {
+    transform: scale(.92);
+  }
+
+  // Play and pause pop in with a little turn when they swap
+  .studio-icon {
+    animation: studio-play-pop .3s cubic-bezier(.2, .9, .3, 1.4);
+  }
+}
+
+@keyframes studio-play-pop {
+  from {
+    opacity: 0;
+    transform: scale(.5) rotate(-30deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -795,6 +820,49 @@
   display: flex;
   grid-area: seek;
   margin-left: var(--studio-space-xs);
+
+  // The arrow turns its way: a little on hover, further when pressed, then
+  // springs back
+  .studio-control {
+    .studio-icon {
+      transition: transform .35s cubic-bezier(.2, .9, .3, 1.5);
+    }
+
+    &:active .studio-icon {
+      transition-duration: .12s;
+    }
+  }
+
+  .studio-control:first-child {
+    &:hover .studio-icon {
+      transform: rotate(-20deg);
+    }
+
+    &:active .studio-icon {
+      transform: rotate(-70deg);
+    }
+  }
+
+  .studio-control:last-child {
+    &:hover .studio-icon {
+      transform: rotate(20deg);
+    }
+
+    &:active .studio-icon {
+      transform: rotate(70deg);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-play,
+  .studio-seek .studio-control .studio-icon {
+    transition: none;
+  }
+
+  .studio-play .studio-icon {
+    animation: none;
+  }
 }
 
 .studio-clock {
