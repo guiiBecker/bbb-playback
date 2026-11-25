@@ -1979,6 +1979,25 @@
     padding: 0 var(--studio-space-m) var(--studio-space-sm);
   }
 
+  // One row is too narrow for everything: as in the mobile mockup, no back
+  // and forward buttons (the timeline seeks), and smaller round buttons
+  .studio-seek {
+    display: none;
+  }
+
+  .studio-actions {
+    gap: 0;
+  }
+
+  .studio-control {
+    height: 2rem;
+    width: 2rem;
+  }
+
+  .studio-speed-button {
+    margin: 0 2px;
+  }
+
   .studio-clock {
     font-size: var(--studio-font-s);
     margin: 0 var(--studio-space-xs);
@@ -2027,6 +2046,19 @@
       // The cue's 32-character lines wrap again at this width: let them flow
       white-space: normal;
     }
+  }
+}
+
+// The narrowest phones: the round buttons a little smaller still (28px, above
+// the 24px target size) and a shorter clock, so the row keeps to the screen
+@media (max-width: 360px) {
+  .studio-control {
+    height: 1.75rem;
+    width: 1.75rem;
+  }
+
+  .studio-clock {
+    font-size: var(--studio-font-xs);
   }
 }
 
