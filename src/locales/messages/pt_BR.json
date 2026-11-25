@@ -80,7 +80,7 @@
   "studio.polls.votes": "{count, plural, one {# voto} other {# votos}}",
   "studio.polls.responders": "{count, plural, one {# participante respondeu} other {# participantes responderam}}",
   "studio.polls.correct": "Resposta correta",
-  "studio.marker.chat": "{count, plural, one {# mensagem no chat} other {# mensagens no chat}}",
+  "studio.marker.chat": "{count, plural, one {# mensagem de moderador} other {# mensagens de moderador}}",
   "studio.marker.slide": "{count, plural, one {# troca de slide} other {# trocas de slide}}",
   "studio.marker.poll": "{count, plural, one {# enquete} other {# enquetes}}",
   "studio.marker.screenshare": "Compartilhamento de tela",

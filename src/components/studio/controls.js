@@ -31,7 +31,7 @@ const intlMessages = defineMessages({
   volume: { id: 'studio.controls.volume', defaultMessage: 'Volume' },
   fullscreen: { id: 'studio.controls.fullscreen', defaultMessage: 'Fullscreen' },
   exitFullscreen: { id: 'studio.controls.exitFullscreen', defaultMessage: 'Exit fullscreen' },
-  chat: { id: 'studio.marker.chat', defaultMessage: '{count, plural, one {# chat message} other {# chat messages}}' },
+  chat: { id: 'studio.marker.chat', defaultMessage: '{count, plural, one {# moderator message} other {# moderator messages}}' },
   slide: { id: 'studio.marker.slide', defaultMessage: '{count, plural, one {# slide change} other {# slide changes}}' },
   poll: { id: 'studio.marker.poll', defaultMessage: '{count, plural, one {# poll} other {# polls}}' },
   screenshare: { id: 'studio.marker.screenshare', defaultMessage: 'Screen sharing' },
@@ -46,7 +46,7 @@ const MARKER_ICONS = {
   video: 'video',
 };
 
-// "01:15 · 2 chat messages, 1 slide change"
+// "01:15 · 2 moderator messages, 1 slide change"
 const describe = (intl, marker) => {
   const parts = TYPES
     .filter((type) => marker.counts[type])

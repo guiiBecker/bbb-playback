@@ -15,14 +15,18 @@ const SEGMENT_MIN = 0.02;
 
 // Everything with a time in the published recording. Only what the published
 // files hold: chat (slides_new.xml), slides and screen sharing (shapes.svg,
-// deskshare.xml), polls (polls.json), external videos (external_videos.json)
+// deskshare.xml), polls (polls.json), external videos (external_videos.json).
+// Of the chat only the moderators' messages: all of it would bury the
+// timeline, and the chat tab lists the rest
 const collectEvents = (duration) => {
   const events = [];
   const add = (type, time) => {
     if (Number.isFinite(time) && time >= 0 && time <= duration) events.push({ time, type });
   };
 
-  (storage.chat || []).forEach((message) => add('chat', message.timestamp));
+  (storage.chat || [])
+    .filter((message) => message.moderator)
+    .forEach((message) => add('chat', message.timestamp));
   (storage.polls || []).forEach((poll) => add('poll', poll.timestamp));
   // A stop with no start (the recording began with the video already
   // stopped) publishes an entry with no URL: not a video
