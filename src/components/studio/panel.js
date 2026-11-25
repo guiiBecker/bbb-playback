@@ -10,7 +10,7 @@ import Notes from './notes';
 import Transcript from './transcript';
 
 // Plugins (questions and others) get their place in the apps tab (apps.js)
-const TABS = ['transcription', 'chat', 'notes', 'chapters', 'apps'];
+const TABS = ['chat', 'notes', 'transcription', 'chapters', 'apps'];
 
 const intlMessages = defineMessages({
   minutes: { id: 'studio.info.minutes', defaultMessage: '{minutes} min' },
@@ -22,19 +22,13 @@ const intlMessages = defineMessages({
   tabs: { id: 'studio.tabs.aria', defaultMessage: 'Recording content' },
 });
 
-// Opens on the transcription, or on the chat when only the chat has content
-const initialTab = (captions) => {
-  if (!captions.length && storage.chat && storage.chat.length) return 'chat';
-
-  return TABS[0];
-};
-
 // Header with the recording (name, date and time, duration, participants),
 // tabs, the selected tab's content and a footer for actions. The footer
 // actions come in a later step
 const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
-  const [tab, setTab] = useState(() => initialTab(captions));
+  // Opens on the chat, the first tab
+  const [tab, setTab] = useState(TABS[0]);
   const { end, name, start } = storage.metadata;
   // The media's own duration; the recording's start/end until the media loads
   const length = duration || Math.max(0, (end - start) / 1000);
