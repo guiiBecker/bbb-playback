@@ -96,5 +96,9 @@
   "studio.attendees.title": "Participantes ({count})",
   "studio.attendees.close": "Fechar",
   "studio.attendees.moderator": "Moderador",
-  "studio.attendees.unnamed": "{count, plural, one {Mais # participante não tem} other {Mais # participantes não têm}} nome nesta gravação."
+  "studio.attendees.unnamed": "{count, plural, one {Mais # participante não tem} other {Mais # participantes não têm}} nome nesta gravação.",
+  "studio.chapters.aria": "Capítulos",
+  "studio.chapters.chapter": "Capítulo {number}",
+  "studio.chapters.empty": "Nenhum capítulo nesta gravação.",
+  "studio.chapters.slide": "Slide {number}"
 }

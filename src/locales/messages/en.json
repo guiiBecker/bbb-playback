@@ -97,5 +97,9 @@
   "studio.attendees.title": "Participants ({count})",
   "studio.attendees.close": "Close",
   "studio.attendees.moderator": "Moderator",
-  "studio.attendees.unnamed": "{count, plural, one {# more participant has} other {# more participants have}} no name in this recording."
+  "studio.attendees.unnamed": "{count, plural, one {# more participant has} other {# more participants have}} no name in this recording.",
+  "studio.chapters.aria": "Chapters",
+  "studio.chapters.chapter": "Chapter {number}",
+  "studio.chapters.empty": "No chapters in this recording.",
+  "studio.chapters.slide": "Slide {number}"
 }
