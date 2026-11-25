@@ -4,7 +4,7 @@ import { ID } from 'utils/constants';
 import storage from 'utils/data/storage';
 import Controls from './controls';
 import Panel from './panel';
-import Stage from './stage';
+import Stage, { usePresentationShown } from './stage';
 import { pickLocale, useTranscript } from './transcript';
 import { useFullscreen, usePlayerState } from './hooks';
 import './index.scss';
@@ -27,6 +27,10 @@ const Studio = () => {
   const [captionsOn, setCaptionsOn] = useState(true);
   const transcript = useTranscript(locale);
   const hasCaptions = transcript.cues.length > 0;
+  // The webcams are on by default; turning them off gives their room to the
+  // presentation, so the button is only there when both are shown
+  const [webcamsOn, setWebcamsOn] = useState(true);
+  const webcamsToggle = usePresentationShown() && state.hasVideo;
   // Fullscreen covers the stage and the controls only, see index.scss
   const main = useRef(null);
   const fullscreen = useFullscreen(main);
@@ -54,11 +58,13 @@ const Studio = () => {
           hasVideo={state.hasVideo}
           ratio={state.ratio}
           time={state.time}
+          webcamsOn={webcamsOn}
         />
         <Controls
           captions={{ available: hasCaptions, on: captionsOn, toggle: () => setCaptionsOn((on) => !on) }}
           fullscreen={fullscreen}
           state={state}
+          webcams={{ available: webcamsToggle, on: webcamsOn, toggle: () => setWebcamsOn((on) => !on) }}
         />
       </main>
     </div>

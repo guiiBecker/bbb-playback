@@ -61,6 +61,7 @@
   "studio.chat.seek": "Ir para {time}",
   "studio.chat.reply": "Mostrar a mensagem respondida",
   "studio.controls.captions": "Legendas",
+  "studio.controls.webcams": "Câmeras",
   "studio.transcript.aria": "Transcrição",
   "studio.transcript.empty": "Esta gravação não tem transcrição.",
   "studio.transcript.error": "Não foi possível carregar a transcrição.",

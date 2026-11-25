@@ -62,6 +62,7 @@
   "studio.chat.seek": "Go to {time}",
   "studio.chat.reply": "Show the replied message",
   "studio.controls.captions": "Captions",
+  "studio.controls.webcams": "Webcams",
   "studio.transcript.aria": "Transcription",
   "studio.transcript.empty": "This recording has no transcription.",
   "studio.transcript.error": "The transcription could not be loaded.",

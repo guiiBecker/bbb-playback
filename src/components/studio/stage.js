@@ -111,17 +111,31 @@ const Captions = ({ cues, picture, time }) => {
   );
 };
 
+// Whether the stage shows a presentation (or screenshare) beside the webcams.
+// Without one the webcams are the content
+const usePresentationShown = () => {
+  const { showPresentation } = useLayoutSwap();
+
+  return !layout.single && showPresentation !== false;
+};
+
 // Presentation (or screenshare) in the middle, webcams in a column on the right.
 // The recording keeps all webcams in a single video. `cues` is null while the
-// captions are off
-const Stage = ({ cues, hasVideo, ratio, time }) => {
-  const { showPresentation } = useLayoutSwap();
-  const presentation = !layout.single && showPresentation !== false;
+// captions are off. With `webcamsOn` false the webcams column folds away and
+// the presentation takes its room; the video stays, it carries the sound
+const Stage = ({ cues, hasVideo, ratio, time, webcamsOn }) => {
+  const presentation = usePresentationShown();
   const content = useRef(null);
   const picture = usePicture(content);
 
   return (
-    <section className={cx('studio-stage', { 'no-presentation': !presentation, 'no-video': !hasVideo })}>
+    <section
+      className={cx('studio-stage', {
+        'no-presentation': !presentation,
+        'no-video': !hasVideo,
+        'webcams-hidden': presentation && hasVideo && !webcamsOn,
+      })}
+    >
       <div className="studio-content" ref={content}>
         <Content
           fullscreen={false}
@@ -138,5 +152,7 @@ const Stage = ({ cues, hasVideo, ratio, time }) => {
     </section>
   );
 };
+
+export { usePresentationShown };
 
 export default Stage;

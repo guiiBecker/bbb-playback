@@ -23,6 +23,7 @@ const intlMessages = defineMessages({
   pause: { id: 'studio.controls.pause', defaultMessage: 'Pause' },
   timeline: { id: 'studio.controls.timeline', defaultMessage: 'Timeline' },
   captions: { id: 'studio.controls.captions', defaultMessage: 'Captions' },
+  webcams: { id: 'studio.controls.webcams', defaultMessage: 'Webcams' },
   backward: { id: 'studio.controls.backward', defaultMessage: 'Back {seconds} seconds' },
   forward: { id: 'studio.controls.forward', defaultMessage: 'Forward {seconds} seconds' },
   mute: { id: 'studio.controls.mute', defaultMessage: 'Mute' },
@@ -277,9 +278,14 @@ const VolumeControl = ({ muted: playerMuted, volume: playerVolume }) => {
   );
 };
 
-// Play, back and forward, time, timeline, speed, captions, volume and
+// Play, back and forward, time, timeline, speed, webcams, captions, volume and
 // fullscreen
-const Controls = ({ captions, fullscreen, state }) => {
+const Controls = ({
+  captions,
+  fullscreen,
+  state,
+  webcams,
+}) => {
   const intl = useIntl();
   const {
     duration,
@@ -308,6 +314,20 @@ const Controls = ({ captions, fullscreen, state }) => {
       <Timeline duration={duration} label={intl.formatMessage(intlMessages.timeline)} time={time} />
       <div className="studio-actions">
         <Speed rate={rate} />
+        {webcams.available ? (
+          // A toggle like captions; the icon shows the state, and a new
+          // icon on every change so it pops in (index.scss)
+          <button
+            aria-label={intl.formatMessage(intlMessages.webcams)}
+            aria-pressed={webcams.on}
+            className="studio-control studio-webcams-toggle"
+            onClick={webcams.toggle}
+            title={intl.formatMessage(intlMessages.webcams)}
+            type="button"
+          >
+            <Icon key={webcams.on ? 'on' : 'off'} name={webcams.on ? 'webcams' : 'webcamsOff'} size={20} />
+          </button>
+        ) : null}
         {captions.available ? (
           <button
             aria-label={intl.formatMessage(intlMessages.captions)}
