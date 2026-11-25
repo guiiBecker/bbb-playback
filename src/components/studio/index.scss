@@ -429,14 +429,125 @@
   gap: var(--studio-space-s);
   padding: var(--studio-space-sm) var(--studio-space-l);
 
+  // The closed field, alike in every browser: the studio's field look and a
+  // chevron (Lucide, ISC License) instead of the system's arrow
   select {
-    background-color: var(--studio-card);
+    appearance: none;
+    background: var(--studio-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23717C91' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right .5rem center / 14px;
     border: 1px solid var(--studio-line);
     border-radius: var(--studio-radius-small);
     color: var(--studio-text);
+    cursor: pointer;
     font-family: inherit;
     font-size: var(--studio-font-s);
-    padding: var(--studio-space-xs) var(--studio-space-s);
+    font-weight: var(--studio-weight-default);
+    min-height: 2rem;
+    padding: 0 2rem 0 var(--studio-space-sm);
+    transition: border-color .15s, box-shadow .15s;
+
+    &:hover {
+      border-color: #B8C4D2;
+    }
+
+    &:focus-visible {
+      border-color: var(--studio-primary);
+      box-shadow: 0 0 0 3px var(--studio-focus);
+      outline: 2px solid var(--studio-primary);
+      outline-offset: 1px;
+    }
+  }
+}
+
+// Where the browser lets the open list be styled (customizable select,
+// Chrome 135 and later): a popover like the speed list. Elsewhere the list
+// stays the system's. Still a real select: keyboard, screen readers and the
+// phone pickers work as before
+@supports (appearance: base-select) {
+  .studio-language select,
+  .studio-language select::picker(select) {
+    appearance: base-select;
+  }
+
+  .studio-language select {
+    align-items: center;
+    background-image: none;
+    display: inline-flex;
+    gap: var(--studio-space-s);
+    padding-right: var(--studio-space-s);
+
+    // The chevron turns over while the list is open
+    &::picker-icon {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23717C91' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat center / 14px;
+      content: '';
+      height: 14px;
+      transition: rotate .2s;
+      width: 14px;
+    }
+
+    &:open::picker-icon {
+      rotate: 180deg;
+    }
+
+    &:open {
+      border-color: var(--studio-primary);
+    }
+
+    &::picker(select) {
+      background-color: var(--studio-card);
+      border: 1px solid var(--studio-line);
+      border-radius: var(--studio-radius-small);
+      box-shadow: 0 8px 24px rgba(16, 33, 51, .18);
+      margin-top: var(--studio-space-xs);
+      opacity: 0;
+      padding: var(--studio-space-xs);
+      transform: translateY(-4px) scale(.96);
+      transform-origin: top left;
+      transition: opacity .15s, transform .22s cubic-bezier(.2, .9, .3, 1.2), display .22s allow-discrete, overlay .22s allow-discrete;
+    }
+
+    &::picker(select):popover-open {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @starting-style {
+    .studio-language select::picker(select):popover-open {
+      opacity: 0;
+      transform: translateY(-4px) scale(.96);
+    }
+  }
+
+  .studio-language option {
+    border-radius: var(--studio-space-xs);
+    color: var(--studio-text);
+    cursor: pointer;
+    font-size: var(--studio-font-s);
+    gap: var(--studio-space-s);
+    padding: var(--studio-space-s) var(--studio-space-sm);
+
+    &:hover,
+    &:focus-visible {
+      background-color: var(--studio-active);
+      outline: none;
+    }
+
+    // The chosen language: bold, darker blue and ticked, not the colour alone
+    &:checked {
+      color: var(--studio-primary-hover);
+      font-weight: var(--studio-weight-default);
+    }
+
+    &::checkmark {
+      color: var(--studio-primary);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .studio-language select::picker(select),
+    .studio-language select::picker-icon {
+      transition: none;
+    }
   }
 }
 
