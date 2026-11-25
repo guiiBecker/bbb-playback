@@ -1,11 +1,42 @@
 import React, { useEffect, useRef, useState } from 'react';
 import cx from 'classnames';
+import { defineMessages, useIntl } from 'react-intl';
 import Content from 'components/player/content';
 import Webcams from 'components/webcams';
 import { useLayoutSwap } from 'components/utils/hooks';
 import { ID } from 'utils/constants';
 import layout from 'utils/layout';
+import { useDoubleTapSeek } from './gestures';
+import Icon from './icon';
 import { activeCue } from './transcript';
+
+const intlMessages = defineMessages({
+  // The back and forward buttons' labels
+  backward: { id: 'studio.controls.backward', defaultMessage: 'Back {seconds} seconds' },
+  forward: { id: 'studio.controls.forward', defaultMessage: 'Forward {seconds} seconds' },
+});
+
+// What a double tap did: a ripple on that side with the seconds jumped so
+// far, and the same said to screen readers
+const SeekFeedback = ({ feedback }) => {
+  const intl = useIntl();
+  const said = feedback
+    ? intl.formatMessage(intlMessages[feedback.side], { seconds: feedback.total })
+    : '';
+
+  return (
+    <>
+      {feedback ? (
+        // A new element for each tap, so the ripple plays again
+        <div aria-hidden="true" className={cx('studio-seek-feedback', feedback.side)} key={feedback.id}>
+          <Icon name={feedback.side} size={28} />
+          <span>{intl.formatNumber(feedback.total, { style: 'unit', unit: 'second', unitDisplay: 'narrow' })}</span>
+        </div>
+      ) : null}
+      <span className="studio-visually-hidden" role="status">{said}</span>
+    </>
+  );
+};
 
 // The box a picture of `width` x `height` takes when fitted, centered, into
 // `frame`: how the presentation fits its viewBox into the SVG
@@ -125,8 +156,10 @@ const usePresentationShown = () => {
 // the presentation takes its room; the video stays, it carries the sound
 const Stage = ({ cues, hasVideo, ratio, time, webcamsOn }) => {
   const presentation = usePresentationShown();
+  const stage = useRef(null);
   const content = useRef(null);
   const picture = usePicture(content);
+  const seekFeedback = useDoubleTapSeek(stage);
 
   return (
     <section
@@ -135,6 +168,7 @@ const Stage = ({ cues, hasVideo, ratio, time, webcamsOn }) => {
         'no-video': !hasVideo,
         'webcams-hidden': presentation && hasVideo && !webcamsOn,
       })}
+      ref={stage}
     >
       <div className="studio-content" ref={content}>
         <Content
@@ -149,6 +183,7 @@ const Stage = ({ cues, hasVideo, ratio, time, webcamsOn }) => {
         <Webcams minimal />
       </div>
       {cues ? <Captions cues={cues} picture={picture} time={time} /> : null}
+      <SeekFeedback feedback={seekFeedback} />
     </section>
   );
 };

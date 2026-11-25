@@ -1292,6 +1292,91 @@
   }
 }
 
+// Double tap to seek on touch screens (gestures.js). The browser's own double
+// tap zoom would get in the way; pinch zoom stays
+.studio-stage {
+  touch-action: manipulation;
+}
+
+// A light half oval on the tapped side with the arrow and the seconds jumped
+// so far; it fades out, and plays again with every tap of a run
+.studio-seek-feedback {
+  align-items: center;
+  animation: studio-seek-ripple .7s ease-out forwards;
+  background-color: rgba(255, 255, 255, .14);
+  bottom: 0;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--studio-font-s);
+  font-weight: var(--studio-weight-hard);
+  gap: var(--studio-space-xs);
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+  top: 0;
+  width: 38%;
+  z-index: 5;
+
+  .studio-icon {
+    animation: studio-seek-turn .35s cubic-bezier(.2, .9, .3, 1.5);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6));
+  }
+
+  &.backward {
+    --studio-seek-turn: -45deg;
+    border-radius: 0 50% 50% 0 / 0 50% 50% 0;
+    left: 0;
+    transform-origin: left center;
+  }
+
+  &.forward {
+    --studio-seek-turn: 45deg;
+    border-radius: 50% 0 0 50% / 50% 0 0 50%;
+    right: 0;
+    transform-origin: right center;
+  }
+}
+
+@keyframes studio-seek-ripple {
+  0% {
+    opacity: 0;
+    transform: scale(.9);
+  }
+
+  15% {
+    opacity: 1;
+    transform: none;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+// The arrow turns the way it seeks
+@keyframes studio-seek-turn {
+  from {
+    transform: rotate(var(--studio-seek-turn)) scale(.7);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-seek-feedback,
+  .studio-seek-feedback .studio-icon {
+    animation: none;
+  }
+}
+
 // Webcams off: their column folds to nothing, the presentation takes the
 // room. The tile fades and shrinks away but stays, its video carries the
 // sound. Above the layouts' own columns (phones, sideways, fullscreen)
