@@ -1,4 +1,4 @@
-import { fitFrame, masterAreas } from './master';
+import { captionsPlace, fitFrame, masterAreas } from './master';
 
 // The studio-1080 master: 1920x1080, the presentation inside its border at
 // x 20, y 155, 1400x770 (layout.json "content")
@@ -89,5 +89,35 @@ describe('masterAreas', () => {
   it('has none without a layout or its size', () => {
     expect(masterAreas(null, 10, false)).toEqual([]);
     expect(masterAreas({ content: layout.content, tiles: [] }, 10, false)).toEqual([]);
+  });
+});
+
+describe('captionsPlace', () => {
+  const layout = { content: CONTENT, height: 1080, width: 1920 };
+
+  it('is the bottom of the presentation in the video, in the stage\'s pixels', () => {
+    // The video at half its size
+    const place = captionsPlace(fitFrame(960, 540, 1920, 1080), layout);
+
+    // Below the presentation the video has 1080 - 155 - 770 = 155 px
+    expect(place.bottom).toBeCloseTo(77.5);
+    expect(place.center).toBeCloseTo((20 + 700) / 2);
+    expect(place.width).toBeCloseTo(700);
+  });
+
+  it('follows the presentation when only it is shown (webcams hidden)', () => {
+    const frame = fitFrame(1400, 770, 1920, 1080, CONTENT);
+    const place = captionsPlace(frame, layout);
+
+    // The presentation fills the box: its bottom is the box's, its middle too
+    expect(frame.top + frame.height - place.bottom).toBeCloseTo(770);
+    expect(frame.left + place.center).toBeCloseTo(700);
+    expect(place.width).toBeCloseTo(1400);
+  });
+
+  it('is not known without layout.json, or before the video is placed', () => {
+    expect(captionsPlace(fitFrame(960, 540, 1280, 720), null)).toBeNull();
+    expect(captionsPlace(fitFrame(960, 540, 1280, 720), { height: 720, width: 1280 })).toBeNull();
+    expect(captionsPlace(null, layout)).toBeNull();
   });
 });

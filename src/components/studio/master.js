@@ -105,6 +105,51 @@ const useMasterFrame = (element, width, height, crop) => {
   return box;
 };
 
+// The video's own size in its pixels, once the browser knows it: what places
+// the frame for a recording without layout.json, which has the size too
+const useVideoSize = (element) => {
+  const [size, setSize] = useState(null);
+
+  useEffect(() => {
+    const node = element.current;
+    if (!node) return undefined;
+
+    const update = () => {
+      const video = node.querySelector('video');
+      if (!video || !video.videoWidth || !video.videoHeight) return;
+
+      setSize((previous) => (previous && previous.width === video.videoWidth && previous.height === video.videoHeight
+        ? previous
+        : { height: video.videoHeight, width: video.videoWidth }));
+    };
+
+    // Media events do not bubble, but reach the ancestors' capture listeners
+    const events = ['loadedmetadata', 'resize'];
+    events.forEach((event) => node.addEventListener(event, update, true));
+    update();
+
+    return () => events.forEach((event) => node.removeEventListener(event, update, true));
+  }, [element]);
+
+  return size;
+};
+
+// Where the captions go, in CSS pixels inside the whole video (`frame`):
+// over the presentation's part of it, at its bottom, as they were on the
+// slide before the video had it all. Without layout.json nothing says where
+// the presentation is: null, and they keep to the bottom of the video.
+// { bottom: from the video's bottom edge, center: from its left edge, width }
+const captionsPlace = (frame, layout) => {
+  const content = layout && layout.content;
+  if (!frame || !content || !layout.height) return null;
+
+  return {
+    bottom: (layout.height - content.y - content.height) * frame.scale,
+    center: (content.x + content.width / 2) * frame.scale,
+    width: content.width * frame.scale,
+  };
+};
+
 const onScreen = (tile, time) => tile.start <= time && time < tile.end;
 
 // Corner radii in video pixels, so they grow and shrink with the video. The
@@ -251,6 +296,7 @@ const DownloadButton = () => {
 };
 
 export {
+  captionsPlace,
   DownloadButton,
   fitFrame,
   MASTER_CLIP_PATH,
@@ -259,4 +305,5 @@ export {
   masterAreas,
   useMasterFrame,
   useMasterLayout,
+  useVideoSize,
 };

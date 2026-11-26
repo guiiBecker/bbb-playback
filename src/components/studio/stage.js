@@ -6,11 +6,13 @@ import { useDoubleTapSeek } from './gestures';
 import Icon from './icon';
 import { activeCue } from './transcript';
 import {
+  captionsPlace,
   MASTER_CLIP_PATH,
   MasterClip,
   MasterOverlay,
   masterAreas,
   useMasterFrame,
+  useVideoSize,
 } from './master';
 
 const intlMessages = defineMessages({
@@ -41,13 +43,21 @@ const SeekFeedback = ({ feedback }) => {
   );
 };
 
-// The recorded transcription as captions, at the bottom of the stage
-const Captions = ({ cues, time }) => {
+// The recorded transcription as captions, over the video: at the bottom of
+// the presentation's part of it (`place`, master.js), or without one at the
+// bottom of the video
+const Captions = ({ cues, place, time }) => {
   const cue = activeCue(cues, time);
   if (!cue) return null;
 
+  const style = place ? {
+    bottom: `calc(${place.bottom}px + var(--studio-captions-inset))`,
+    left: `${place.center}px`,
+    maxWidth: `calc(${place.width}px - 2 * var(--studio-captions-inset))`,
+  } : undefined;
+
   return (
-    <div className="studio-captions">
+    <div className="studio-captions" style={style}>
       <span>{cue.text}</span>
     </div>
   );
@@ -68,7 +78,14 @@ const Stage = ({
   const masterBox = useRef(null);
   // Webcams hidden: only the presentation / screen sharing part of the video
   const crop = layout && layout.content && !webcamsOn ? layout.content : null;
-  const frame = useMasterFrame(masterBox, layout && layout.width, layout && layout.height, crop);
+  // The video's size: layout.json has it, else the video itself says it
+  const size = useVideoSize(masterBox);
+  const frame = useMasterFrame(
+    masterBox,
+    (layout && layout.width) || (size && size.width),
+    (layout && layout.height) || (size && size.height),
+    crop,
+  );
   // The presentation and the webcam tiles are square in the video: it is
   // clipped to them with rounded corners, as the stage without a master
   // video had them
@@ -87,10 +104,11 @@ const Stage = ({
             <Webcams minimal />
           </div>
           {areas.length ? <MasterClip areas={areas} layout={layout} /> : null}
-          {frame && !crop ? <MasterOverlay layout={layout} scale={frame.scale} time={time} /> : null}
+          {layout && frame && !crop ? <MasterOverlay layout={layout} scale={frame.scale} time={time} /> : null}
+          {/* Inside the video's frame, so they sit on the picture */}
+          {cues ? <Captions cues={cues} place={captionsPlace(frame, layout)} time={time} /> : null}
         </div>
       </div>
-      {cues ? <Captions cues={cues} time={time} /> : null}
       <SeekFeedback feedback={seekFeedback} />
     </section>
   );
