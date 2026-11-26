@@ -19,9 +19,10 @@ are data files for the panel and the overlays:
 | `participants.json` | `/presentation/<id>/` | `post_publish/participants.rb` | the participants list |
 | slides, chat, captions, notes... | `/presentation/<id>/` | the `presentation` format, as today | panel tabs, chapters, markers |
 
-Without `video-0.mp4` the playback works as before: it plays the
-`presentation` format's webcams video. Every JSON is optional. If one is
-missing, its feature is just not shown.
+The playback plays **only** `video-0.mp4`: no WebM, no webcams video or audio
+of the `presentation` format. Without it the recording shows the "not found"
+error. Every JSON is optional. If one is missing, its feature is just not
+shown.
 
 ## What is here
 
@@ -55,9 +56,9 @@ yet. They will come when they are written on top of the upstream
 `video` format. Until then, test with recordings that already have them
 (ask the team).
 
-**Use the data-only patch only on recordings that also get the master MP4.**
-Data only publishes no webcams video. Without the MP4, the playback falls
-back to the sound and the slides, with no webcams.
+Every recording the playback opens needs the master MP4. The data-only patch
+leaves the `presentation` format without any video, which is fine for this
+playback: it never plays the `presentation` format's media.
 
 ## Usage, on a BBB server
 
