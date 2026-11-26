@@ -653,6 +653,46 @@
   }
 }
 
+// The notes' exports (Markdown, PDF), below the notes: the header's buttons
+// with a label, in the brand blue
+.studio-notes-footer {
+  border-top: 1px solid var(--studio-line);
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--studio-space-s);
+  padding: var(--studio-space-sm) var(--studio-space-l);
+}
+
+.studio-notes-download {
+  align-items: center;
+  background: none;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius-small);
+  // BigBlueButton's blue (colorBrand1), as an action
+  color: var(--studio-primary);
+  cursor: pointer;
+  display: inline-flex;
+  // The two share the footer's whole width
+  flex: 1;
+  font-size: var(--studio-font-s);
+  font-weight: var(--studio-weight-default);
+  gap: var(--studio-space-xs);
+  height: 2.75rem;
+  justify-content: center;
+  padding: 0 var(--studio-space-sm);
+  text-decoration: none;
+  transition: background-color .15s;
+
+  &:hover {
+    background-color: var(--studio-highlight);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--studio-primary);
+    outline-offset: 2px;
+  }
+}
+
 .studio-notes-hint {
   color: var(--studio-muted);
   font-size: var(--studio-font-xs);

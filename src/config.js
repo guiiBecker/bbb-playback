@@ -16,13 +16,16 @@ const date = { enabled: true };
 
 // The recording is the "video" format's (/playback/video/<record id>/): its
 // MP4 (or M4V), metadata, captions and chat (video.xml, the same
-// <chattimeline> entries as the presentation format's slides_new.xml). The
-// JSON files next to them (layout.json, talking.json, timeline.json,
-// participants.json) are optional and fetched where they are used
+// <chattimeline> entries as the presentation format's slides_new.xml), and
+// the shared notes (notes.html, published from the recording's raw files by
+// the post_publish step, with notes.pdf). The JSON files next to them
+// (layout.json, talking.json, timeline.json, participants.json) are optional
+// and fetched where they are used
 const files = {
   captions: 'captions.json',
   chat: 'video.xml',
   metadata: 'metadata.xml',
+  notes: 'notes.html',
 };
 
 const locale = { default: 'en' };

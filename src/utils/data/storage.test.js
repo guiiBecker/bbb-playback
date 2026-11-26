@@ -86,7 +86,7 @@ describe('storage', () => {
     const storage = loadStorage();
     storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
 
-    expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
+    expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/notes.html', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
     expect(global.fetch.mock.calls.every(([url]) => url.startsWith('/playback/video/rec/'))).toBe(true);
   });
 
