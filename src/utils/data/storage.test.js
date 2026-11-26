@@ -3,8 +3,11 @@ import { ERROR } from 'utils/constants';
 
 const MISSING = { ok: false, status: 404, headers: { get: () => null } };
 const VIDEO = { ok: true, status: 200, headers: { get: () => 'video/mp4' } };
-// The recording's MP4, the "video" format's, as the fetch mock keys it
-const MASTER = 'HEAD rec/video-0.mp4';
+// The recording's video, the "video" format's, as the fetch mock keys it
+const MP4 = 'HEAD rec/video-0.mp4';
+const M4V = 'HEAD rec/video-0.m4v';
+// The M4V when the preset makes [mp4, m4v]
+const M4V_SECOND = 'HEAD rec/video-1.m4v';
 
 // Fresh storage module per test: it keeps the fetched data in module state
 const loadStorage = () => {
@@ -45,7 +48,9 @@ describe('storage', () => {
     const names = Object.values(files);
     const last = names.pop();
     names.forEach(file => pending[fileKey(file)].resolve(MISSING));
-    pending[MASTER].resolve(VIDEO);
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
     await flush();
 
     expect(onLoaded).not.toHaveBeenCalled();
@@ -67,30 +72,75 @@ describe('storage', () => {
 
     expect(onLoaded).not.toHaveBeenCalled();
 
-    pending[MASTER].resolve(VIDEO);
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
     await flush();
 
     expect(onLoaded).toHaveBeenCalledTimes(1);
     expect(storage.media).toEqual({ type: 'video/mp4', url: '/playback/video/rec/video-0.mp4' });
   });
 
-  it('probes only the MP4, no WebM', async () => {
+  it('reads only the video format\'s files: no presentation format, no WebM', async () => {
     const pending = deferredFetch();
     const storage = loadStorage();
     storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
 
-    const probes = Object.keys(pending).filter(key => key.startsWith('HEAD'));
+    expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
+    expect(global.fetch.mock.calls.every(([url]) => url.startsWith('/playback/video/rec/'))).toBe(true);
+  });
 
-    expect(probes).toEqual([MASTER]);
-    expect(Object.keys(pending).some(key => /webm|audio\./.test(key))).toBe(false);
+  it('plays the MP4 when there is no M4V', async () => {
+    const pending = deferredFetch();
+    const storage = loadStorage();
+    const onLoaded = jest.fn();
+    storage.fetch('rec', jest.fn(), onLoaded, jest.fn());
+
+    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
+    await flush();
+
+    expect(onLoaded).toHaveBeenCalledTimes(1);
+    expect(storage.media.url).toBe('/playback/video/rec/video-0.mp4');
+  });
+
+  it('prefers the M4V when there are both (video-1.m4v, the preset\'s second format)', async () => {
+    const pending = deferredFetch();
+    const storage = loadStorage();
+    storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
+
+    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve({ ok: true, status: 200, headers: { get: () => 'video/x-m4v' } });
+    await flush();
+
+    expect(storage.media).toEqual({ type: 'video/mp4', url: '/playback/video/rec/video-1.m4v' });
+  });
+
+  it('prefers video-0.m4v over video-1.m4v', async () => {
+    const pending = deferredFetch();
+    const storage = loadStorage();
+    storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
+
+    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
+    const m4v = { ok: true, status: 200, headers: { get: () => 'video/x-m4v' } };
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(m4v);
+    pending[M4V_SECOND].resolve(m4v);
+    await flush();
+
+    expect(storage.media.url).toBe('/playback/video/rec/video-0.m4v');
   });
 
   const failures = [
-    ['is not there', MISSING],
-    ['answers with a page, not a video', { ok: true, status: 200, headers: { get: () => 'text/html' } }],
+    ['are not there', MISSING],
+    ['answer with a page, not a video', { ok: true, status: 200, headers: { get: () => 'text/html' } }],
   ];
   failures.forEach(([label, response]) => {
-    it(`reports the recording as not found when the MP4 ${label}`, async () => {
+    it(`reports the recording as not found when the MP4 and M4V ${label}`, async () => {
       const pending = deferredFetch();
       const storage = loadStorage();
       const onError = jest.fn();
@@ -98,7 +148,9 @@ describe('storage', () => {
       storage.fetch('rec', jest.fn(), onLoaded, onError);
 
       Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
-      pending[MASTER].resolve(response);
+      pending[MP4].resolve(response);
+      pending[M4V].resolve(response);
+      pending[M4V_SECOND].resolve(response);
       await flush();
 
       expect(onError).toHaveBeenCalledWith(ERROR.NOT_FOUND);
@@ -106,15 +158,24 @@ describe('storage', () => {
     });
   });
 
-  it('reports the recording as not found when the probe fails', async () => {
+  it('reports the recording as not found when the probes fail', async () => {
     const pending = deferredFetch();
     const storage = loadStorage();
     const onError = jest.fn();
     storage.fetch('rec', jest.fn(), jest.fn(), onError);
 
-    pending[MASTER].reject(new TypeError('Failed to fetch'));
+    pending[MP4].reject(new TypeError('Failed to fetch'));
+    pending[M4V].reject(new TypeError('Failed to fetch'));
+    pending[M4V_SECOND].reject(new TypeError('Failed to fetch'));
     await flush();
 
     expect(onError).toHaveBeenCalledWith(ERROR.NOT_FOUND);
+  });
+
+  it('has empty presentation data, not errors', () => {
+    const storage = loadStorage();
+
+    expect(storage.slides).toEqual([]);
+    expect(storage.thumbnails).toEqual([]);
   });
 });

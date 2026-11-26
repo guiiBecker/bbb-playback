@@ -13,10 +13,8 @@ import {
   ID,
 } from 'utils/constants';
 import storage from 'utils/data/storage';
-import layout from 'utils/layout';
 import logger from 'utils/logger';
 import {
-  getLayout,
   parseRecordId,
 } from 'utils/params';
 import './index.scss';
@@ -63,8 +61,6 @@ const Loader = ({ match }) => {
   storage.fetch(recordId.current, onUpdate, onLoaded, onError);
 
   if (loaded) {
-    layout.mode = getLayout();
-
     return <Studio />;
   }
 

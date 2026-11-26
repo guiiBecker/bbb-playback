@@ -14,20 +14,15 @@ const controls = {
 
 const date = { enabled: true };
 
+// The recording is the "video" format's (/playback/video/<record id>/): its
+// MP4 (or M4V), metadata, captions and chat (video.xml, the same
+// <chattimeline> entries as the presentation format's slides_new.xml). The
+// JSON files next to them (layout.json, talking.json, timeline.json,
+// participants.json) are optional and fetched where they are used
 const files = {
-  alternates: 'presentation_text.json',
   captions: 'captions.json',
-  chat: 'slides_new.xml',
-  cursor: 'cursor.xml',
+  chat: 'video.xml',
   metadata: 'metadata.xml',
-  notes: 'notes.html',
-  panzooms: 'panzooms.xml',
-  polls: 'polls.json',
-  screenshare: 'deskshare.xml',
-  shapes: 'shapes.svg',
-  tldraw: 'tldraw.json',
-  videos: 'external_videos.json',
-  layout: 'layout.xml',
 };
 
 const locale = { default: 'en' };

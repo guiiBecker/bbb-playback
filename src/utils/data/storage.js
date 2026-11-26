@@ -10,7 +10,6 @@ import {
 } from 'utils/constants';
 import {
   buildFileURL,
-  buildVideoURL,
   getFileType,
 } from 'utils/data';
 import {
@@ -90,26 +89,39 @@ const fetchFile = (data, recordId, onUpdate, onLoaded, onError) => {
   }).catch(error => onError(ERROR.NOT_FOUND));
 };
 
-// The recording's video is the "video" format's MP4, and only it: without it
-// the recording cannot be played. Only a video answer counts: a server that
-// answers unknown paths with a page (a single page app's fallback) says 200 too
-const fetchMedia = (recordId, onUpdate, onLoaded, onError) => {
-  const url = buildVideoURL('video-0.mp4', recordId);
-  fetch(url, { method: 'HEAD' }).then(response => {
+// The recording's video is the "video" format's, as M4V or MP4 (the same
+// H.264/AAC), and only it: without it the recording cannot be played. The
+// M4V comes first; the MP4 is played when there is no M4V. Only a
+// video answer counts: a server that answers unknown paths with a page (a
+// single page app's fallback) says 200 too
+// The format names each output video-<its index in the preset>.<extension>:
+// video-0.mp4 and video-1.m4v for [mp4, m4v], video-0.m4v for [m4v]
+const VIDEO_FILES = ['video-0.m4v', 'video-1.m4v', 'video-0.mp4'];
+
+const probeVideo = (url) => fetch(url, { method: 'HEAD' })
+  .then(response => {
     const type = (response.headers?.get('content-type') || '').toLowerCase();
-    if (!response.ok || !type.startsWith('video/')) {
-      logger.warn(ID.STORAGE, ID.MEDIA, response);
+    return response.ok && type.startsWith('video/');
+  })
+  .catch(error => {
+    logger.warn(ID.STORAGE, ID.MEDIA, url, error);
+    return false;
+  });
+
+const fetchMedia = (recordId, onUpdate, onLoaded, onError) => {
+  const urls = VIDEO_FILES.map(file => buildFileURL(file, recordId));
+  Promise.all(urls.map(probeVideo)).then(found => {
+    const url = urls.find((_, index) => found[index]);
+    if (!url) {
       onError(ERROR.NOT_FOUND);
       return;
     }
 
-    logger.debug(ID.STORAGE, ID.MEDIA, response);
+    logger.debug(ID.STORAGE, ID.MEDIA, url);
+    // Browsers play an M4V as the MP4 it is
     DATA[ID.MEDIA] = { type: 'video/mp4', url };
     onUpdate(ID.MEDIA);
     if (hasLoaded()) onLoaded();
-  }).catch(error => {
-    logger.warn(ID.STORAGE, ID.MEDIA, error);
-    onError(ERROR.NOT_FOUND);
   });
 };
 
@@ -172,7 +184,7 @@ const storage = {
     const result = DATA[ID.CURSOR];
     return result ? result.data : [];
   },
-  // { url, type } of the recording's MP4
+  // { url, type } of the recording's M4V (or MP4)
   get media() {
     return DATA[ID.MEDIA];
   },
@@ -200,18 +212,21 @@ const storage = {
   get screenshare() {
     return DATA[ID.SCREENSHARE];
   },
+  // The presentation format's data: empty, the player reads the video
+  // format's files only
   get shapes() {
-    return DATA[ID.SHAPES];
+    return DATA[ID.SHAPES] || {};
   },
   get slides() {
-    return this.shapes[ID.SLIDES];
+    return this.shapes[ID.SLIDES] || [];
   },
   get canvases() {
-    return this.shapes[ID.CANVASES];
+    return this.shapes[ID.CANVASES] || [];
   },
   get thumbnails() {
     if (!hasProperty(DATA, ID.THUMBNAILS)) {
-      DATA[ID.THUMBNAILS] = addAlternatesToThumbnails(this.shapes[ID.THUMBNAILS], this.alternates);
+      const thumbnails = this.shapes[ID.THUMBNAILS];
+      DATA[ID.THUMBNAILS] = thumbnails ? addAlternatesToThumbnails(thumbnails, this.alternates) : [];
     }
 
     return DATA[ID.THUMBNAILS];

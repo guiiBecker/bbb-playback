@@ -23,22 +23,13 @@ const buildFileURL = (file, recordId = null) => {
 
   const mediaPath = getMediaPath();
 
-  const rootUrl = MEDIA_ROOT_URL ? MEDIA_ROOT_URL : '/presentation';
+  const rootUrl = MEDIA_ROOT_URL ? MEDIA_ROOT_URL : '/playback/video';
 
   const id = recordId ? recordId : storage.metadata.id;
   let fileUrl = `${id}/${file}`;
   if (mediaPath) fileUrl = `${mediaPath}/${fileUrl}`;
 
   return `${rootUrl}/${fileUrl}`;
-};
-
-// A file of the recording's "video" format: its MP4 (video-0.mp4), the only
-// video the player plays and the one it offers for download, and its
-// layout.json, at /playback/video/<record id>/
-const buildVideoURL = (file, recordId = null) => {
-  const id = recordId ? recordId : storage.metadata.id;
-
-  return `/playback/video/${id}/${file}`;
 };
 
 const getAvatarStyle = name => {
@@ -208,7 +199,6 @@ const caseInsensitiveReducer = (acc, item) => {
 
 export {
   buildFileURL,
-  buildVideoURL,
   getAvatarStyle,
   getBar,
   getPads,

@@ -118,16 +118,19 @@ const buildVideos = result => {
   return data;
 };
 
+// The presentation format's metadata.xml has <meeting id name>; the video
+// format's has the record <id>, and the name only in <meta>
 const buildMetadata = result => {
   let data = {};
   const { recording } = result;
 
-  if (hasProperty(recording, 'meeting')) {
-    const id = recording.meeting._id;
-    const meta = recording.meta;
+  if (hasProperty(recording, 'meeting') || hasProperty(recording, 'id')) {
+    const { meeting } = recording;
+    const id = meeting ? meeting._id : String(recording.id);
+    const meta = recording.meta || {};
     const end = parseInt(recording.end_time, 10);
-    const name = meta.meetingName ? meta.meetingName : recording.meeting._name;
-    const participants = parseInt(recording.participants, 10);
+    const name = meta.meetingName ? meta.meetingName : (meeting ? meeting._name : '');
+    const participants = parseInt(recording.participants, 10) || 0;
     const start = parseInt(recording.start_time, 10);
 
     data = {

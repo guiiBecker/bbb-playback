@@ -1,5 +1,4 @@
 import {
-  addAlternatesToThumbnails,
   build,
   buildStyle,
   getAttr,
@@ -105,16 +104,34 @@ it('gets a numeric array from a string', () => {
   expect(getNumbers()).toEqual([]);
 });
 
-it('adds slide texts to PNG and tldraw SVG thumbnails', async () => {
-  // Built before the tldraw files are loaded, as when this one arrives first
-  const alternates = await build('presentation_text.json', {
-    presentation: { 'slide-1': 'First slide', 'slide-2': 'Second slide' },
+it('reads the video format\'s metadata.xml', async () => {
+  const metadata = await build('metadata.xml', `<?xml version="1.0"?>
+<recording>
+  <id>abc-1795021174516</id>
+  <start_time>1795021174516</start_time>
+  <end_time>1795023029530</end_time>
+  <playback><format>video</format><duration>1522112</duration></playback>
+  <meta><meetingName>Room #4</meetingName></meta>
+</recording>`);
+
+  expect(metadata).toEqual({
+    end: 1795023029530,
+    id: 'abc-1795021174516',
+    name: 'Room #4',
+    participants: 0,
+    start: 1795021174516,
   });
+});
 
-  const thumbnails = addAlternatesToThumbnails([
-    { src: 'presentation/presentation/thumbnails/thumb-1.png' },
-    { src: 'presentation/presentation/svgs/slide2.svg' },
-  ], alternates);
+it('still reads the presentation format\'s metadata.xml', async () => {
+  const metadata = await build('metadata.xml', `<?xml version="1.0"?>
+<recording>
+  <start_time>1</start_time>
+  <end_time>2</end_time>
+  <participants>3</participants>
+  <meeting id="abc-1" name="Room"/>
+  <meta></meta>
+</recording>`);
 
-  expect(thumbnails.map(({ alt }) => alt)).toEqual(['First slide', 'Second slide']);
+  expect(metadata).toEqual({ end: 2, id: 'abc-1', name: 'Room', participants: 3, start: 1 });
 });
