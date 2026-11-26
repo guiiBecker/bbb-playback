@@ -193,7 +193,7 @@ const Stage = ({
               height: frame.height, left: frame.left, top: frame.top, width: frame.width,
             } : undefined}
           >
-            <Webcams minimal sources={[{ src: master.src, type: master.type }]} />
+            <Webcams minimal sources={master.sources} />
             {frame && !crop ? <MasterOverlay layout={layout} scale={frame.scale} time={time} /> : null}
           </div>
         </div>

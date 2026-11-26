@@ -5,9 +5,10 @@ import storage from 'utils/data/storage';
 import Icon from './icon';
 import usePublishedJson from './published';
 
-// The recording's master MP4: the server's "video" recording format, in the
+// The recording's master video: the server's "video" recording format, in the
 // playback's layout (studio-1080 preset: the presentation or screen sharing on
 // the left, the webcams in a column on the right), at /playback/video/<id>/.
+// An MP4 with that preset, but any file of the format is taken (FORMATS).
 // When it is there the stage plays it and the download button offers the very
 // same file. layout.json, next to it, says where each webcam tile sits in the
 // video and whose it is, and talking.json (the presentation format's, as
@@ -22,23 +23,70 @@ const intlMessages = defineMessages({
 
 const base = () => `/playback/video/${storage.metadata.id}`;
 
-// { status: 'checking' | 'found' | 'none', src, type, layout }
+// The video format names its files video-<n>.<extension>: <n> is the place of
+// the format in the preset's list (video.yml), the extension is the preset's.
+// BigBlueButton's own presets write video-0.m4v, with the VP9 alternative a
+// .webm; the studio preset video-0.mp4. In the order they are tried and
+// offered to the player; `type` is what the player is told, as the video
+// format's own page does (video/mp4 for .m4v)
+const FORMATS = [
+  { extension: 'mp4', type: 'video/mp4' },
+  { extension: 'm4v', type: 'video/mp4' },
+  { extension: 'webm', type: 'video/webm' },
+];
+
+// A preset has one format, or two (MP4 and WebM)
+const MAX_FORMATS = 2;
+
+// Whether the server has the file. Not a page: a server that answers unknown
+// paths with one (the dev server, a single page app's fallback) says 200 too.
+// The type is not required to be a video's: servers name .m4v differently
+// (video/x-m4v), or not at all
+const exists = async (src) => {
+  try {
+    const response = await fetch(src, { method: 'HEAD' });
+    const answered = (response.headers.get('content-type') || '').toLowerCase();
+
+    return response.ok && !answered.startsWith('text/');
+  } catch (error) {
+    return false;
+  }
+};
+
+// The master video's files under `folder`, [{ src, type }]: the first format
+// in whichever extension it has, then a second one if the preset has it, for
+// browsers that do not play the first. Empty when there is no master video
+const findMasterSources = async (folder) => {
+  const sources = [];
+
+  for (let n = 0; n < MAX_FORMATS; n += 1) {
+    // One format at a time: without the first there is no second to look for
+    // eslint-disable-next-line no-await-in-loop
+    const found = await Promise.all(FORMATS.map(async ({ extension, type }) => {
+      const src = `${folder}/video-${n}.${extension}`;
+
+      return (await exists(src)) ? { src, type } : null;
+    }));
+    const files = found.filter(Boolean);
+    if (!files.length) break;
+
+    sources.push(...files);
+  }
+
+  return sources;
+};
+
+// { status: 'checking' | 'found' | 'none', sources, src, type, layout }:
+// `sources` for the player, `src` and `type` the first of them (the download)
 const useMasterVideo = () => {
   const [master, setMaster] = useState({ status: 'checking' });
 
   useEffect(() => {
     let cancelled = false;
     const find = async () => {
-      const src = `${base()}/video-0.mp4`;
-      try {
-        const response = await fetch(src, { method: 'HEAD' });
-        // Only a video counts: a server that answers unknown paths with a
-        // page (the dev server, a single page app's fallback) says 200 too
-        const answered = (response.headers.get('content-type') || '').toLowerCase();
-        if (!response.ok || !answered.startsWith('video/')) return { status: 'none' };
-      } catch (error) {
-        return { status: 'none' };
-      }
+      const sources = await findMasterSources(base());
+      if (!sources.length) return { status: 'none' };
+
       let layout = null;
       try {
         const response = await fetch(`${base()}/layout.json`, { cache: 'no-store' });
@@ -47,7 +95,7 @@ const useMasterVideo = () => {
         // no overlays: the video still plays
       }
       return {
-        layout, src, status: 'found', type: 'video/mp4',
+        layout, sources, src: sources[0].src, status: 'found', type: sources[0].type,
       };
     };
     find().then((result) => { if (!cancelled) setMaster(result); });
@@ -176,6 +224,7 @@ const DownloadButton = ({ master }) => {
 export {
   DownloadButton,
   MasterOverlay,
+  findMasterSources,
   useMasterFrame,
   useMasterVideo,
 };
