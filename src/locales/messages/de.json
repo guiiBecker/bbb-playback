@@ -83,6 +83,7 @@
   "studio.polls.correct": "Richtige Antwort",
   "studio.marker.chat": "{count, plural, one {# Nachricht der Moderation} other {# Nachrichten der Moderation}}",
   "studio.marker.hand": "{count, plural, one {# gehobene Hand} other {# gehobene Hände}}",
+  "studio.marker.handBy": "Hand gehoben: {names}",
   "studio.marker.reaction": "{count, plural, one {# Reaktion} other {# Reaktionen}}",
   "studio.marker.slide": "{count, plural, one {# Folienwechsel} other {# Folienwechsel}}",
   "studio.marker.poll": "{count, plural, one {# Umfrage} other {# Umfragen}}",

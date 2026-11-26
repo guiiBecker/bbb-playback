@@ -58,4 +58,25 @@ describe('buildMarkers', () => {
   it('ignores a timeline.json that is not a list', () => {
     expect(buildMarkers(1000, { hand: 5 }).map(({ type }) => type)).toEqual(['chat']);
   });
+
+  it('keeps who raised a hand or reacted, each name once', () => {
+    // The first marker is the mocked chat message, at 100 s
+    const [, marker] = buildMarkers(1000, [
+      { name: 'Ana', time: 500, type: 'hand' },
+      { name: 'Bia', time: 505, type: 'hand' },
+      { name: 'Ana', time: 510, type: 'hand' },
+      { emoji: '👍', name: 'Caio', time: 512, type: 'reaction' },
+    ]);
+
+    expect(marker.counts.hand).toBe(3);
+    expect(marker.names).toEqual({ hand: ['Ana', 'Bia'], reaction: ['Caio'] });
+    expect(marker.unnamed).toEqual({});
+  });
+
+  it('counts the moments without a name', () => {
+    const [, marker] = buildMarkers(1000, [{ time: 500, type: 'hand' }]);
+
+    expect(marker.unnamed).toEqual({ hand: 1 });
+    expect(marker.names).toEqual({});
+  });
 });

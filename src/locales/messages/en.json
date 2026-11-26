@@ -83,6 +83,7 @@
   "studio.polls.correct": "Correct answer",
   "studio.marker.chat": "{count, plural, one {# moderator message} other {# moderator messages}}",
   "studio.marker.hand": "{count, plural, one {# raised hand} other {# raised hands}}",
+  "studio.marker.handBy": "Raised hand: {names}",
   "studio.marker.reaction": "{count, plural, one {# reaction} other {# reactions}}",
   "studio.marker.slide": "{count, plural, one {# slide change} other {# slide changes}}",
   "studio.marker.poll": "{count, plural, one {# poll} other {# polls}}",

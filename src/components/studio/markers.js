@@ -21,8 +21,9 @@ const SEGMENT_MIN = 0.02;
 // timeline, and the chat tab lists the rest
 const collectEvents = (duration, timeline) => {
   const events = [];
-  const add = (type, time) => {
-    if (Number.isFinite(time) && time >= 0 && time <= duration) events.push({ time, type });
+  // `name`: who did it, when the data says (raised hands, reactions)
+  const add = (type, time, name = null) => {
+    if (Number.isFinite(time) && time >= 0 && time <= duration) events.push({ name, time, type });
   };
 
   (storage.chat || [])
@@ -35,7 +36,7 @@ const collectEvents = (duration, timeline) => {
   (storage.screenshare || []).forEach((share) => add('screenshare', share.timestamp));
   (Array.isArray(timeline) ? timeline : [])
     .filter((moment) => moment && (moment.type === 'hand' || moment.type === 'reaction'))
-    .forEach((moment) => add(moment.type, moment.time));
+    .forEach((moment) => add(moment.type, moment.time, moment.name || null));
 
   // A slide change is a new image in shapes.svg; screen sharing shows up there
   // too, already counted above. The first image is the start, not a change
@@ -49,7 +50,9 @@ const collectEvents = (duration, timeline) => {
   return events.sort((a, b) => a.time - b.time);
 };
 
-// [{ time, position (0-1), type, counts: { chat: 3, … } }]
+// [{ time, position (0-1), type, counts: { chat: 3, … }, names: { hand: ['Ana'] },
+// unnamed: { hand: 0 } }]: `names`, per type, who did it, each once; `unnamed`
+// how many of them came without a name
 const buildMarkers = (duration, timeline = null) => {
   if (!duration) return [];
 
@@ -58,11 +61,21 @@ const buildMarkers = (duration, timeline = null) => {
     const position = event.time / duration;
     const last = markers[markers.length - 1];
 
+    let marker = last;
     if (last && position - last.position < MARKER_BUCKET) {
       last.counts[event.type] = (last.counts[event.type] || 0) + 1;
       if (TYPES.indexOf(event.type) < TYPES.indexOf(last.type)) last.type = event.type;
     } else {
-      markers.push({ counts: { [event.type]: 1 }, position, time: event.time, type: event.type });
+      marker = {
+        counts: { [event.type]: 1 }, names: {}, position, time: event.time, type: event.type, unnamed: {},
+      };
+      markers.push(marker);
+    }
+    if (event.name) {
+      const names = marker.names[event.type] || [];
+      if (!names.includes(event.name)) marker.names[event.type] = [...names, event.name];
+    } else {
+      marker.unnamed[event.type] = (marker.unnamed[event.type] || 0) + 1;
     }
   });
 
