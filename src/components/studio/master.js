@@ -32,7 +32,10 @@ const useMasterVideo = () => {
       const src = `${base()}/video-0.mp4`;
       try {
         const response = await fetch(src, { method: 'HEAD' });
-        if (!response.ok) return { status: 'none' };
+        // Only a video counts: a server that answers unknown paths with a
+        // page (the dev server, a single page app's fallback) says 200 too
+        const answered = (response.headers.get('content-type') || '').toLowerCase();
+        if (!response.ok || !answered.startsWith('video/')) return { status: 'none' };
       } catch (error) {
         return { status: 'none' };
       }
