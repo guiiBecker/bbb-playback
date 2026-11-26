@@ -102,9 +102,11 @@ const dispatchTimeUpdate = (time) => {
   document.dispatchEvent(event);
 };
 
-const Webcams = ({ minimal = false }) => {
+// `sources` replaces the recording's webcams video: the redesigned player's
+// master MP4 (studio/master.js)
+const Webcams = ({ minimal = false, sources: override = null }) => {
   const intl = useIntl();
-  const sources = useRef(buildSources());
+  const sources = useRef(override || buildSources());
   const tracks = useRef(buildTracks());
   // Read once: the player is created on mount only
   const bare = useRef(minimal);
