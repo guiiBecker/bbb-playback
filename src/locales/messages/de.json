@@ -103,6 +103,7 @@
   "studio.chapters.chapter": "Kapitel {number}",
   "studio.chapters.empty": "Diese Aufzeichnung hat keine Kapitel.",
   "studio.chapters.slide": "Folie {number}",
+  "studio.download.preparing": "Video wird mit Kapiteln und Untertiteln vorbereitet: {percent}",
   "studio.download.video": "Video herunterladen",
   "studio.locale.label": "Sprache der Oberfläche",
   "studio.locale.button": "Sprache der Oberfläche: {language}"

@@ -3,6 +3,7 @@ import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import { buildFileURL } from 'utils/data';
 import storage from 'utils/data/storage';
+import useDownload from './download';
 import Icon from './icon';
 import usePublishedJson from './published';
 
@@ -19,6 +20,10 @@ import usePublishedJson from './published';
 
 const intlMessages = defineMessages({
   download: { id: 'studio.download.video', defaultMessage: 'Download the video' },
+  preparing: {
+    id: 'studio.download.preparing',
+    defaultMessage: 'Preparing the video with its chapters and captions: {percent}',
+  },
 });
 
 // layout.json, or null while it loads or when it is not there (the video
@@ -271,22 +276,33 @@ const DownloadIcon = ({ dropping }) => (
   </svg>
 );
 
-// The same file the stage plays. The arrow nods on hover; on a click it
-// drops into the tray and a new one follows, to show the download started
+// The same file the stage plays, with the recording's chapters and captions
+// put into it on the way (download.js): that takes the browser a moment, in
+// which the button fills up. The arrow nods on hover; on a click it drops
+// into the tray and a new one follows, to show the download started
 const DownloadButton = () => {
   const intl = useIntl();
   const [drops, setDrops] = useState(0);
   const { url } = storage.media;
+  const { onClick, progress } = useDownload(url, fileName(url), intl);
+  const busy = progress !== null;
 
-  const label = intl.formatMessage(intlMessages.download);
+  const label = busy
+    ? intl.formatMessage(intlMessages.preparing, { percent: intl.formatNumber(progress, { style: 'percent' }) })
+    : intl.formatMessage(intlMessages.download);
 
   return (
     <a
+      aria-busy={busy || undefined}
       aria-label={label}
-      className="studio-download"
+      className={cx('studio-download', { busy })}
       download={fileName(url)}
       href={url}
-      onClick={() => setDrops((count) => count + 1)}
+      onClick={(event) => {
+        if (!busy) setDrops((count) => count + 1);
+        onClick(event);
+      }}
+      style={busy ? { '--studio-download-progress': `${Math.round(progress * 100)}%` } : undefined}
       title={label}
     >
       {/* A new element for each click, so the drop plays again */}
