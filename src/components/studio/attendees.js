@@ -6,8 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { defineMessages, useIntl } from 'react-intl';
-import { buildFileURL } from 'utils/data';
 import storage from 'utils/data/storage';
+import usePublishedJson from './published';
 
 // Avatars shown before the "+N" count
 const MAX_AVATARS = 5;
@@ -48,25 +48,14 @@ const chatWriters = () => {
 // has everyone; without it, the names the recording has are the chat's
 // writers, and metadata.xml gives how many took part
 const useAttendees = () => {
-  const [published, setPublished] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(buildFileURL('participants.json'))
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (!cancelled && Array.isArray(data)) setPublished(data.filter((p) => p && p.name));
-      })
-      .catch(() => {});
-
-    return () => { cancelled = true; };
-  }, []);
+  const data = usePublishedJson('participants.json');
 
   return useMemo(() => {
+    const published = Array.isArray(data) ? data.filter((p) => p && p.name) : null;
     const people = published && published.length ? published : chatWriters();
 
     return { people, total: Math.max(storage.metadata.participants || 0, people.length) };
-  }, [published]);
+  }, [data]);
 };
 
 const Avatar = ({ name }) => (
