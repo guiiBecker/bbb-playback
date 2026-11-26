@@ -5,7 +5,6 @@ import {
   useIntl,
 } from 'react-intl';
 import Data from './data';
-import Dots from './dots';
 import Error from 'components/error';
 import Studio from 'components/studio';
 import {
@@ -70,10 +69,8 @@ const Loader = ({ match }) => {
       className="loader-wrapper"
       id={ID.LOADER}
     >
+      {/* What is loading, at the bottom: the only loading animation */}
       <div className="loader-top" />
-      <div className="loader-middle">
-        <Dots />
-      </div>
       <div className="loader-bottom">
         <Data data={storage.built} />
       </div>
