@@ -6,16 +6,16 @@ import storage from 'utils/data/storage';
 import Icon from './icon';
 import usePublishedJson from './published';
 
-// The recording's MP4: the server's "video" recording format, in the
+// The recording's video: the server's "video" recording format, in the
 // playback's layout (the presentation or screen sharing on the left, the
 // webcams in a column on the right), at /playback/video/<id>/. It is the only
-// video the player plays (utils/data/storage checks it is there) and the
-// download button offers the very same file. layout.json, next to it, says
-// where each webcam tile sits in the video and whose it is, and where the
-// presentation is; talking.json (next to the presentation format's files)
-// says who talks when. With them the names and who is talking are drawn over
-// the video, and the webcams can be hidden by showing only the presentation
-// part of it (they stay in the downloaded file).
+// video the player plays (utils/data/storage finds it, the M4V first, else
+// the MP4) and the download button offers the very same file. layout.json,
+// next to it, says where each webcam tile sits in the video and whose it is,
+// and where the presentation is; talking.json says who talks when. With them
+// the names and who is talking are drawn over the video, the presentation and
+// the tiles get rounded corners, and the webcams can be hidden by showing only
+// the presentation part of it (they stay in the downloaded file).
 
 const intlMessages = defineMessages({
   download: { id: 'studio.download.video', defaultMessage: 'Download the video' },
@@ -105,11 +105,73 @@ const useMasterFrame = (element, width, height, crop) => {
   return box;
 };
 
+const onScreen = (tile, time) => tile.start <= time && time < tile.end;
+
+// Corner radii in video pixels, so they grow and shrink with the video. The
+// presentation's is the slide's of the stage without a master video (1.2% of
+// its width, index.scss), a tile's the webcams' there (8px), capped
+const CONTENT_RADIUS = 0.012;
+const TILE_RADIUS = 0.05;
+const TILE_RADIUS_MAX = 16;
+
+// The parts of the video with a picture in them at `time`: the presentation
+// and the webcam tiles on screen, or with `cropped` (webcams hidden) only the
+// presentation. [{ x, y, width, height, radius }] in video pixels; empty when
+// layout.json does not say
+const masterAreas = (layout, time, cropped) => {
+  if (!layout || !layout.width || !layout.height) return [];
+
+  const areas = [];
+  if (layout.content) {
+    areas.push({ ...layout.content, radius: layout.content.width * CONTENT_RADIUS });
+  }
+  if (!cropped) {
+    (layout.tiles || []).filter((tile) => onScreen(tile, time)).forEach((tile) => areas.push({
+      height: tile.height,
+      radius: Math.min(TILE_RADIUS_MAX, tile.width * TILE_RADIUS),
+      width: tile.width,
+      x: tile.x,
+      y: tile.y,
+    }));
+  }
+
+  return areas;
+};
+
+// One master video on the page
+const CLIP_ID = 'studio-master-clip';
+const MASTER_CLIP_PATH = `url(#${CLIP_ID})`;
+
+// Rounded corners for the presentation and the webcam tiles, which are square
+// in the video: the video is clipped to `areas` (MASTER_CLIP_PATH on its
+// element). In fractions of the video (objectBoundingBox), so the clip follows
+// the video's size by itself, also while it moves
+const MasterClip = ({ areas, layout }) => (
+  // Its size inline: the presentation's global `svg` rule would stretch it
+  <svg aria-hidden="true" focusable="false" style={{ height: 0, position: 'absolute', width: 0 }}>
+    <defs>
+      <clipPath clipPathUnits="objectBoundingBox" id={CLIP_ID}>
+        {areas.map((area) => (
+          <rect
+            height={area.height / layout.height}
+            key={`${area.x}-${area.y}-${area.width}-${area.height}`}
+            rx={area.radius / layout.width}
+            ry={area.radius / layout.height}
+            width={area.width / layout.width}
+            x={area.x / layout.width}
+            y={area.y / layout.height}
+          />
+        ))}
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 // Names and who is talking, over the webcam tiles of the video; `scale` is the
 // video's, the overlay covers the whole video
 const MasterOverlay = ({ layout, scale, time }) => {
   const talkingByUser = useTalking();
-  const tiles = layout.tiles.filter((tile) => tile.start <= time && time < tile.end);
+  const tiles = layout.tiles.filter((tile) => onScreen(tile, time));
 
   return (
     // Visual only: the names are in the participants list too
@@ -148,10 +210,29 @@ const fileName = (src) => {
   return `${name}.${src.split('.').pop()}`;
 };
 
-// The same file the stage plays
+// Lucide's download (ISC License). Its parts apart, so the arrow can move
+// into the tray
+const DownloadIcon = ({ dropping }) => (
+  <svg
+    aria-hidden="true"
+    className={cx('studio-download-icon', { dropping })}
+    focusable="false"
+    // Inline, so the presentation's global `svg` rule cannot resize it
+    style={{ height: 18, width: 18 }}
+    viewBox="0 0 24 24"
+  >
+    <path className="studio-download-tray" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path className="studio-download-arrow" d="M7 10l5 5 5-5M12 15V3" />
+  </svg>
+);
+
+// The same file the stage plays. The arrow nods on hover; on a click it
+// drops into the tray and a new one follows, to show the download started
 const DownloadButton = () => {
   const intl = useIntl();
+  const [drops, setDrops] = useState(0);
   const { url } = storage.media;
+
   const label = intl.formatMessage(intlMessages.download);
 
   return (
@@ -160,9 +241,11 @@ const DownloadButton = () => {
       className="studio-download"
       download={fileName(url)}
       href={url}
+      onClick={() => setDrops((count) => count + 1)}
       title={label}
     >
-      <Icon name="download" size={18} />
+      {/* A new element for each click, so the drop plays again */}
+      <DownloadIcon dropping={drops > 0} key={drops} />
     </a>
   );
 };
@@ -170,7 +253,10 @@ const DownloadButton = () => {
 export {
   DownloadButton,
   fitFrame,
+  MASTER_CLIP_PATH,
+  MasterClip,
   MasterOverlay,
+  masterAreas,
   useMasterFrame,
   useMasterLayout,
 };

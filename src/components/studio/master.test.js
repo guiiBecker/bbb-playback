@@ -1,4 +1,4 @@
-import { fitFrame } from './master';
+import { fitFrame, masterAreas } from './master';
 
 // The studio-1080 master: 1920x1080, the presentation inside its border at
 // x 20, y 155, 1400x770 (layout.json "content")
@@ -48,5 +48,46 @@ describe('fitFrame', () => {
     expect(top).toBeGreaterThanOrEqual(0);
     expect(bottom).toBeLessThanOrEqual(600);
     expect(bottom - top).toBeCloseTo((300 / 1400) * 770);
+  });
+});
+
+describe('masterAreas', () => {
+  const layout = {
+    content: {
+      height: 828, width: 1472, x: 40, y: 126,
+    },
+    height: 1080,
+    tiles: [
+      {
+        end: 120, height: 246, start: 0, width: 328, x: 1552, y: 155,
+      },
+      {
+        end: 100, height: 246, start: 30, width: 328, x: 1552, y: 417,
+      },
+    ],
+    width: 1920,
+  };
+
+  it('has the presentation and the webcam tiles on screen', () => {
+    expect(masterAreas(layout, 10, false).map(({ x, y }) => [x, y])).toEqual([[40, 126], [1552, 155]]);
+    expect(masterAreas(layout, 50, false)).toHaveLength(3);
+    expect(masterAreas(layout, 100, false)).toHaveLength(2);
+  });
+
+  it('has only the presentation when the webcams are hidden', () => {
+    expect(masterAreas(layout, 50, true).map(({ x, y }) => [x, y])).toEqual([[40, 126]]);
+  });
+
+  it('rounds by the size in the video, small tiles less', () => {
+    const [content, tile] = masterAreas(layout, 10, false);
+
+    expect(content.radius).toBeCloseTo(17.664);
+    expect(tile.radius).toBe(16);
+    expect(masterAreas({ ...layout, tiles: [{ ...layout.tiles[0], width: 200 }] }, 10, false)[1].radius).toBe(10);
+  });
+
+  it('has none without a layout or its size', () => {
+    expect(masterAreas(null, 10, false)).toEqual([]);
+    expect(masterAreas({ content: layout.content, tiles: [] }, 10, false)).toEqual([]);
   });
 });

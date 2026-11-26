@@ -104,5 +104,7 @@
   "studio.chapters.chapter": "Chapter {number}",
   "studio.chapters.empty": "We didn't find chapters in this recording.",
   "studio.chapters.slide": "Slide {number}",
-  "studio.download.video": "Download the video"
+  "studio.download.video": "Download the video",
+  "studio.locale.label": "Interface language",
+  "studio.locale.button": "Interface language: {language}"
 }

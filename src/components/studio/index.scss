@@ -1396,6 +1396,14 @@
     padding: 6vh 5.5vw 2vh;
   }
 
+  // The master MP4 is one video with the webcams in it: a single column
+  // (stated again, the fullscreen columns above would win otherwise), and
+  // slim margins, as the video has its own around the slide
+  .studio-stage.master {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 2vh 2vw 1vh;
+  }
+
   .studio-webcams {
     border: 2px solid rgba(255, 255, 255, .85);
     border-radius: 10px;
@@ -1426,9 +1434,10 @@
 
   // Phones upright: the webcams small, right above the slide or screenshare
   // at full width, the two together in the middle of the screen. The content
-  // takes 16:9 instead of the whole height, so nothing pushes them apart
+  // takes 16:9 instead of the whole height, so nothing pushes them apart.
+  // Not the master MP4: it has no rows of its own and keeps the whole height
   @media (max-width: 700px) and (orientation: portrait) {
-    .studio-stage:not(.no-presentation) {
+    .studio-stage:not(.no-presentation):not(.master) {
       align-content: center;
       gap: var(--studio-space-m);
       grid-template-columns: minmax(0, 1fr);
@@ -1720,6 +1729,12 @@
   }
 }
 
+// The video itself, clipped to its pictures with rounded corners (MasterClip)
+.studio-master-video {
+  height: 100%;
+  width: 100%;
+}
+
 .studio-master-overlay {
   inset: 0;
   pointer-events: none;
@@ -1775,16 +1790,29 @@
   width: 100%;
 }
 
-// The master MP4's download (master.js)
-.studio-download {
+// Beside the recording's name: the interface language and the download
+.studio-heading-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--studio-space-s);
+}
+
+// The master MP4's download (master.js) and the interface language's button
+// (locale.js): the same small square
+.studio-download,
+.studio-locale-button {
   align-items: center;
+  background: none;
   border: 1px solid var(--studio-line);
   border-radius: var(--studio-radius-small);
   color: var(--studio-text);
+  cursor: pointer;
   display: flex;
   flex-shrink: 0;
   height: 2rem;
   justify-content: center;
+  padding: 0;
+  transition: background-color .15s, border-color .15s;
   width: 2rem;
 
   &:hover {
@@ -1794,6 +1822,281 @@
   &:focus-visible {
     outline: 2px solid var(--studio-primary);
     outline-offset: 2px;
+  }
+}
+
+// The interface language (locale.js): a globe that opens the languages
+
+.studio-locale {
+  position: relative;
+}
+
+// Open: the border says so, as the captions' language field does
+.studio-locale-button[aria-expanded="true"] {
+  border-color: var(--studio-primary);
+}
+
+.studio-globe,
+.studio-download-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+// The download (master.js): the arrow nods towards the tray on hover and with
+// the keyboard's focus. On a click it drops into the tray, which gives a
+// little, and a new arrow comes down from above
+.studio-download-arrow,
+.studio-download-tray {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+@media (hover: hover) {
+  .studio-download:hover .studio-download-arrow {
+    animation: studio-download-nod .7s ease-in-out;
+  }
+}
+
+.studio-download:focus-visible .studio-download-arrow {
+  animation: studio-download-nod .7s ease-in-out;
+}
+
+// After the hover rules: a click also has the pointer over the button
+.studio-download .studio-download-icon.dropping {
+  .studio-download-arrow {
+    animation: studio-download-drop .75s linear;
+  }
+
+  .studio-download-tray {
+    animation: studio-download-catch .75s ease-out;
+  }
+}
+
+@keyframes studio-download-nod {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: translateY(3px);
+  }
+
+  55% {
+    transform: translateY(-1px);
+  }
+
+  75% {
+    transform: translateY(1.5px);
+  }
+}
+
+// Falls faster and faster and only fades as it reaches the tray; the new
+// arrow springs into place
+@keyframes studio-download-drop {
+  0% {
+    animation-timing-function: ease-in;
+    opacity: 1;
+    transform: none;
+  }
+
+  28% {
+    opacity: 1;
+    transform: translateY(7px);
+  }
+
+  38% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  39% {
+    animation-timing-function: cubic-bezier(.2, .9, .3, 1.3);
+    opacity: 0;
+    transform: translateY(-9px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes studio-download-catch {
+  0%,
+  25%,
+  100% {
+    transform: none;
+  }
+
+  45% {
+    transform: translateY(1.5px) scaleX(1.06);
+  }
+
+  65% {
+    transform: translateY(-.5px);
+  }
+}
+
+// The meridian closes and opens again, as if the globe turned once on its
+// axis, and the globe gives a little with it
+.studio-globe-meridian {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.studio-globe.turning {
+  animation: studio-globe-nudge .6s cubic-bezier(.2, .9, .3, 1.2);
+
+  .studio-globe-meridian {
+    animation: studio-globe-turn .6s ease-in-out;
+  }
+}
+
+@keyframes studio-globe-turn {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+
+  25%,
+  75% {
+    transform: scaleX(.12);
+  }
+
+  50% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes studio-globe-nudge {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  40% {
+    transform: rotate(-12deg) scale(1.1);
+  }
+}
+
+// Drops out of the button, like the captions' language list
+.studio-locale-list {
+  animation: studio-locale-open .22s cubic-bezier(.2, .9, .3, 1.2);
+  background-color: var(--studio-card);
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius-small);
+  box-shadow: 0 8px 24px rgba(16, 33, 51, .18);
+  list-style: none;
+  margin: var(--studio-space-xs) 0 0;
+  min-width: 11rem;
+  padding: var(--studio-space-xs);
+  position: absolute;
+  right: 0;
+  top: 100%;
+  transform-origin: top right;
+  // Above the panel's tabs and lists
+  z-index: 10;
+
+  // The languages follow one after the other, from the button downwards
+  li {
+    animation: studio-locale-item .2s ease-out both;
+  }
+
+  @for $i from 2 through 8 {
+    li:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 25}ms;
+    }
+  }
+
+  li:nth-child(n + 9) {
+    animation-delay: 200ms;
+  }
+}
+
+@keyframes studio-locale-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes studio-locale-item {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.studio-locale-option {
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: var(--studio-space-xs);
+  color: var(--studio-text);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--studio-font-s);
+  gap: var(--studio-space-sm);
+  justify-content: space-between;
+  min-height: 2rem;
+  padding: var(--studio-space-xs) var(--studio-space-sm);
+  text-align: start;
+  width: 100%;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--studio-active);
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--studio-primary);
+  }
+
+  // The chosen language: bold, darker blue and ticked, not the colour alone
+  &[aria-pressed="true"] {
+    color: var(--studio-primary-hover);
+    font-weight: var(--studio-weight-default);
+  }
+
+  .studio-icon {
+    animation: studio-icon-pop .3s cubic-bezier(.2, .9, .3, 1.4);
+    color: var(--studio-primary);
+    flex-shrink: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-download,
+  .studio-locale-button {
+    transition: none;
+  }
+
+  .studio-download:hover .studio-download-arrow,
+  .studio-download:focus-visible .studio-download-arrow,
+  .studio-download .studio-download-icon.dropping .studio-download-arrow,
+  .studio-download .studio-download-icon.dropping .studio-download-tray,
+  .studio-globe.turning,
+  .studio-globe.turning .studio-globe-meridian,
+  .studio-locale-list,
+  .studio-locale-list li,
+  .studio-locale-option .studio-icon {
+    animation: none;
   }
 }
 
@@ -2497,7 +2800,8 @@
     border-radius: 0;
     padding: var(--studio-space-sm) var(--studio-space-m);
 
-    &:not(.no-presentation) {
+    // Not the master MP4: its webcams are in the video
+    &:not(.no-presentation):not(.master) {
       grid-template-columns: minmax(0, 1fr) 18%;
     }
   }
@@ -2619,7 +2923,7 @@
     gap: var(--studio-space-m);
     padding: var(--studio-space-s) var(--studio-space-m);
 
-    &:not(.no-presentation) {
+    &:not(.no-presentation):not(.master) {
       grid-template-columns: minmax(0, 1fr) minmax(120px, 18%);
     }
   }

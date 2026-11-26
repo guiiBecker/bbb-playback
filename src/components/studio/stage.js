@@ -5,7 +5,13 @@ import Webcams from 'components/webcams';
 import { useDoubleTapSeek } from './gestures';
 import Icon from './icon';
 import { activeCue } from './transcript';
-import { MasterOverlay, useMasterFrame } from './master';
+import {
+  MASTER_CLIP_PATH,
+  MasterClip,
+  MasterOverlay,
+  masterAreas,
+  useMasterFrame,
+} from './master';
 
 const intlMessages = defineMessages({
   // The back and forward buttons' labels
@@ -63,6 +69,10 @@ const Stage = ({
   // Webcams hidden: only the presentation / screen sharing part of the video
   const crop = layout && layout.content && !webcamsOn ? layout.content : null;
   const frame = useMasterFrame(masterBox, layout && layout.width, layout && layout.height, crop);
+  // The presentation and the webcam tiles are square in the video: it is
+  // clipped to them with rounded corners, as the stage without a master
+  // video had them
+  const areas = masterAreas(layout, time, !!crop);
 
   return (
     <section className="studio-stage master" ref={stage}>
@@ -73,7 +83,10 @@ const Stage = ({
             height: frame.height, left: frame.left, top: frame.top, width: frame.width,
           } : undefined}
         >
-          <Webcams minimal />
+          <div className="studio-master-video" style={areas.length ? { clipPath: MASTER_CLIP_PATH } : undefined}>
+            <Webcams minimal />
+          </div>
+          {areas.length ? <MasterClip areas={areas} layout={layout} /> : null}
           {frame && !crop ? <MasterOverlay layout={layout} scale={frame.scale} time={time} /> : null}
         </div>
       </div>

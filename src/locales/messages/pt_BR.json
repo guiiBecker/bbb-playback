@@ -103,5 +103,7 @@
   "studio.chapters.chapter": "Capítulo {number}",
   "studio.chapters.empty": "Não identificamos capítulos nesta gravação.",
   "studio.chapters.slide": "Slide {number}",
-  "studio.download.video": "Baixar o vídeo"
+  "studio.download.video": "Baixar o vídeo",
+  "studio.locale.label": "Idioma da interface",
+  "studio.locale.button": "Idioma da interface: {language}"
 }
