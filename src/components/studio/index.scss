@@ -1818,12 +1818,109 @@
   border-color: var(--studio-primary);
 }
 
-.studio-globe {
+.studio-globe,
+.studio-download-icon {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+// The download (master.js): the arrow nods towards the tray on hover and with
+// the keyboard's focus. On a click it drops into the tray, which gives a
+// little, and a new arrow comes down from above
+.studio-download-arrow,
+.studio-download-tray {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+@media (hover: hover) {
+  .studio-download:hover .studio-download-arrow {
+    animation: studio-download-nod .7s ease-in-out;
+  }
+}
+
+.studio-download:focus-visible .studio-download-arrow {
+  animation: studio-download-nod .7s ease-in-out;
+}
+
+// After the hover rules: a click also has the pointer over the button
+.studio-download .studio-download-icon.dropping {
+  .studio-download-arrow {
+    animation: studio-download-drop .75s linear;
+  }
+
+  .studio-download-tray {
+    animation: studio-download-catch .75s ease-out;
+  }
+}
+
+@keyframes studio-download-nod {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: translateY(3px);
+  }
+
+  55% {
+    transform: translateY(-1px);
+  }
+
+  75% {
+    transform: translateY(1.5px);
+  }
+}
+
+// Falls faster and faster and only fades as it reaches the tray; the new
+// arrow springs into place
+@keyframes studio-download-drop {
+  0% {
+    animation-timing-function: ease-in;
+    opacity: 1;
+    transform: none;
+  }
+
+  28% {
+    opacity: 1;
+    transform: translateY(7px);
+  }
+
+  38% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  39% {
+    animation-timing-function: cubic-bezier(.2, .9, .3, 1.3);
+    opacity: 0;
+    transform: translateY(-9px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes studio-download-catch {
+  0%,
+  25%,
+  100% {
+    transform: none;
+  }
+
+  45% {
+    transform: translateY(1.5px) scaleX(1.06);
+  }
+
+  65% {
+    transform: translateY(-.5px);
+  }
 }
 
 // The meridian closes and opens again, as if the globe turned once on its
@@ -1972,6 +2069,10 @@
     transition: none;
   }
 
+  .studio-download:hover .studio-download-arrow,
+  .studio-download:focus-visible .studio-download-arrow,
+  .studio-download .studio-download-icon.dropping .studio-download-arrow,
+  .studio-download .studio-download-icon.dropping .studio-download-tray,
   .studio-globe.turning,
   .studio-globe.turning .studio-globe-meridian,
   .studio-locale-list,

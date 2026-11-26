@@ -263,9 +263,27 @@ const fileName = (src) => {
   return `${name}.${src.split('.').pop()}`;
 };
 
-// The same file the stage plays
+// Lucide's download (ISC License). Its parts apart, so the arrow can move
+// into the tray
+const DownloadIcon = ({ dropping }) => (
+  <svg
+    aria-hidden="true"
+    className={cx('studio-download-icon', { dropping })}
+    focusable="false"
+    // Inline, so the presentation's global `svg` rule cannot resize it
+    style={{ height: 18, width: 18 }}
+    viewBox="0 0 24 24"
+  >
+    <path className="studio-download-tray" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path className="studio-download-arrow" d="M7 10l5 5 5-5M12 15V3" />
+  </svg>
+);
+
+// The same file the stage plays. The arrow nods on hover; on a click it
+// drops into the tray and a new one follows, to show the download started
 const DownloadButton = ({ master }) => {
   const intl = useIntl();
+  const [drops, setDrops] = useState(0);
   if (master.status !== 'found') return null;
 
   const label = intl.formatMessage(intlMessages.download);
@@ -276,9 +294,11 @@ const DownloadButton = ({ master }) => {
       className="studio-download"
       download={fileName(master.src)}
       href={master.src}
+      onClick={() => setDrops((count) => count + 1)}
       title={label}
     >
-      <Icon name="download" size={18} />
+      {/* A new element for each click, so the drop plays again */}
+      <DownloadIcon dropping={drops > 0} key={drops} />
     </a>
   );
 };
