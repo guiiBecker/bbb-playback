@@ -1378,6 +1378,14 @@
     padding: 6vh 5.5vw 2vh;
   }
 
+  // The master MP4 is one video with the webcams in it: a single column
+  // (stated again, the fullscreen columns above would win otherwise), and
+  // slim margins, as the video has its own around the slide
+  .studio-stage.master {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 2vh 2vw 1vh;
+  }
+
   .studio-webcams {
     border: 2px solid rgba(255, 255, 255, .85);
     border-radius: 10px;
@@ -1408,9 +1416,10 @@
 
   // Phones upright: the webcams small, right above the slide or screenshare
   // at full width, the two together in the middle of the screen. The content
-  // takes 16:9 instead of the whole height, so nothing pushes them apart
+  // takes 16:9 instead of the whole height, so nothing pushes them apart.
+  // Not the master MP4: it has no rows of its own and keeps the whole height
   @media (max-width: 700px) and (orientation: portrait) {
-    .studio-stage:not(.no-presentation) {
+    .studio-stage:not(.no-presentation):not(.master) {
       align-content: center;
       gap: var(--studio-space-m);
       grid-template-columns: minmax(0, 1fr);
@@ -2479,7 +2488,8 @@
     border-radius: 0;
     padding: var(--studio-space-sm) var(--studio-space-m);
 
-    &:not(.no-presentation) {
+    // Not the master MP4: its webcams are in the video
+    &:not(.no-presentation):not(.master) {
       grid-template-columns: minmax(0, 1fr) 18%;
     }
   }
@@ -2601,7 +2611,7 @@
     gap: var(--studio-space-m);
     padding: var(--studio-space-s) var(--studio-space-m);
 
-    &:not(.no-presentation) {
+    &:not(.no-presentation):not(.master) {
       grid-template-columns: minmax(0, 1fr) minmax(120px, 18%);
     }
   }
