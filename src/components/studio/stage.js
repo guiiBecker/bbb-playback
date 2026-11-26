@@ -87,8 +87,10 @@ const samePicture = (a, b) => (a === b) || (a && b
   && a.bottom === b.bottom && a.center === b.center && a.width === b.width);
 
 // Follows the picture's place: the stage resizing, zooming (the viewBox), the
-// slide appearing, switching to the screenshare and its video loading
-const usePicture = (content) => {
+// slide appearing, switching to the screenshare and its video loading. The
+// content area is not there from the start (the stage first looks for the
+// master MP4): `built` changes when it comes, so it is found then
+const usePicture = (content, built) => {
   const [picture, setPicture] = useState(null);
 
   useEffect(() => {
@@ -119,7 +121,7 @@ const usePicture = (content) => {
       mutation.disconnect();
       media.forEach((event) => node.removeEventListener(event, update, true));
     };
-  }, [content]);
+  }, [content, built]);
 
   return picture;
 };
@@ -166,7 +168,7 @@ const Stage = ({
   const presentation = usePresentationShown();
   const stage = useRef(null);
   const content = useRef(null);
-  const picture = usePicture(content);
+  const picture = usePicture(content, master.status);
   const seekFeedback = useDoubleTapSeek(stage);
   const masterBox = useRef(null);
   const layout = master.layout || null;
