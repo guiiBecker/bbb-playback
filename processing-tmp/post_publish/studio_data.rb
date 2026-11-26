@@ -8,6 +8,9 @@
 #   timeline.json  moments the published files do not have, for the timeline's
 #                  markers: raised hands and reactions, in order:
 #                  [{ "time": s, "type": "hand" | "reaction", "name": "...", "emoji": "👍" }]
+#   notes.html     the shared notes, as the archive step exported them from the
+#   notes.pdf      pad (raw notes/): the playback shows the HTML and offers the
+#                  PDF and a Markdown made from the HTML
 #
 # Times are seconds of the published recording (recording periods joined,
 # what is outside them is dropped), as the playback's clock.
@@ -17,6 +20,7 @@
 #   cd /usr/local/bigbluebutton/core/scripts/post_publish
 #   sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f video
 
+require 'fileutils'
 require 'json'
 require 'optimist'
 require File.expand_path('../../../lib/recordandplayback', __FILE__)
@@ -134,5 +138,15 @@ timeline.sort_by! { |item| item[:time] }
 timeline_file = "#{published_dir}/timeline.json"
 File.write(timeline_file, JSON.generate(timeline))
 logger.info("studio_data: wrote #{timeline.size} moment(s) to #{timeline_file} (meeting #{first}..#{last})")
+
+# The shared notes, as the archive step exported them
+notes = "#{props['recording_dir']}/raw/#{meeting_id}/notes"
+%w[notes.html notes.pdf].each do |file|
+  source = "#{notes}/#{file}"
+  next unless File.exist?(source)
+
+  FileUtils.cp(source, "#{published_dir}/#{file}")
+  logger.info("studio_data: published #{file}")
+end
 
 exit 0

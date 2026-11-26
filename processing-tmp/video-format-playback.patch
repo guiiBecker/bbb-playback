@@ -1,0 +1,270 @@
+diff -ruN a/record-and-playback/core/lib/recordandplayback/edl/video/video_source.rb b/record-and-playback/core/lib/recordandplayback/edl/video/video_source.rb
+--- a/record-and-playback/core/lib/recordandplayback/edl/video/video_source.rb
++++ b/record-and-playback/core/lib/recordandplayback/edl/video/video_source.rb
+@@ -86,7 +86,7 @@
+           # Substitute in a blank video.
+           if corrupt? || seek >= @info[:duration]
+             return VideoSourceReader.new(
+-              ffmpeg_filter: "color=c=white:s=#{width}x#{height}:r=#{framerate}," \
++              ffmpeg_filter: "color=c=#{BigBlueButton::EDL::Video.background_color}:s=#{width}x#{height}:r=#{framerate}," \
+                 "trim=end=#{BigBlueButton::EDL::Video.ms_to_s(duration)}"
+             )
+           end
+@@ -134,7 +134,7 @@
+           preprocess_filter = String.new
+           preprocess_filter << '[0:v:0]'
+           preprocess_filter << "scale=w=#{width}:h=#{height}:force_original_aspect_ratio=decrease,"
+-          preprocess_filter << "setsar=1,pad=w=#{width}:h=#{height}:x=-1:y=-1:color=white,"
++          preprocess_filter << "setsar=1,pad=w=#{width}:h=#{height}:x=-1:y=-1:color=#{BigBlueButton::EDL::Video.background_color},"
+           # The trim command combines its arguments - end at the timestamp but only if at least one frame has been output.
+           preprocess_filter << "trim=end=#{BigBlueButton::EDL::Video.ms_to_s(out_time)}:end_frame=1"
+           preprocess_filter << '[out]'
+@@ -171,7 +171,7 @@
+           # Apply PTS offset so '0' time is aligned
+           ffmpeg_filter << "setpts=PTS-#{BigBlueButton::EDL::Video.ms_to_s(in_time)}/TB[#{name}_input];"
+           # Extend the video if needed
+-          ffmpeg_filter << "color=c=white:s=#{width}x#{height}:r=#{framerate}[#{name}_tpad];"
++          ffmpeg_filter << "color=c=#{BigBlueButton::EDL::Video.background_color}:s=#{width}x#{height}:r=#{framerate}[#{name}_tpad];"
+           ffmpeg_filter << "[#{name}_input][#{name}_tpad]concat=n=2:v=1:a=0,"
+           # Clean up the framerate
+           ffmpeg_filter << "fps=#{framerate},"
+diff -ruN a/record-and-playback/core/lib/recordandplayback/edl/video.rb b/record-and-playback/core/lib/recordandplayback/edl/video.rb
+--- a/record-and-playback/core/lib/recordandplayback/edl/video.rb
++++ b/record-and-playback/core/lib/recordandplayback/edl/video.rb
+@@ -39,9 +39,21 @@
+         # concatenating video. Use crf to balance the file size vs video quality tradeoff.
+         '-preset', 'faster', '-tune', 'film', '-x264opts', 'subme=2:bframes=5:stitchable=1', '-crf', '23',
+         '-force_key_frames', 'expr:gte(t,n_forced*10)', '-pix_fmt', 'yuv420p',
++        # Say which colour matrix the frames use (ffmpeg converts RGB with BT.601): untagged,
++        # browsers may read them as BT.709 and show the colours a little off
++        '-colorspace', 'smpte170m', '-color_primaries', 'smpte170m', '-color_trc', 'smpte170m',
+       ]
+       WF_EXT = 'mp4'
+ 
++      # Colour of the video's empty parts: around the areas, and the bars around a
++      # video that does not fill its tile. A preset sets it with `background_color`
++      # (video.yml)
++      @background_color = 'white'
++
++      class << self
++        attr_accessor :background_color
++      end
++
+       def self.dump(edl)
+         BigBlueButton.logger.debug "EDL Dump:"
+         edl.each do |entry|
+@@ -365,6 +377,17 @@
+           raise
+         end
+ 
++        # Where each video sat in each cut (composite_cut writes one file per cut):
++        # [{ start, end, tiles: [{ area, filename, x, y, width, height }] }], in
++        # milliseconds of the output
++        layout_cuts = concat.map do |segment|
++          cut_layout_file = "#{segment[:file]}.layout.json"
++          next nil unless File.exist?(cut_layout_file)
++
++          JSON.parse(File.read(cut_layout_file)).tap { File.delete(cut_layout_file) }
++        end
++        File.write("#{output_basename}.layout.json", JSON.generate(layout_cuts.compact))
++
+         concat_file = "#{output_basename}.txt"
+         File.open(concat_file, 'w') do |outio|
+           outio.write("ffconcat version 1.0\n")
+@@ -500,7 +523,9 @@
+         ffmpeg_inputs = []
+         ffmpeg_input_pipes = {}
+         ffmpeg_filter = String.new
+-        ffmpeg_filter << "color=c=white:s=#{layout[:width]}x#{layout[:height]}:r=#{layout[:framerate]}"
++        ffmpeg_filter << "color=c=#{background_color}:s=#{layout[:width]}x#{layout[:height]}:r=#{layout[:framerate]}"
++        # Where each video lands in the frame, for the playback (layout.json)
++        cut_tiles = []
+ 
+         # Check for obscured (completely hidden) video areas, and skip processing for those areas
+         layout[:areas].each_with_index do |layout_area, i|
+@@ -572,11 +597,31 @@
+           xstack_inputs = []
+           xstack_layout = []
+ 
++          # The presentation can be drawn at a lower rate than the video's (its
++          # pictures change seldom): `presentation_framerate` in the layout
++          area_framerate = layout[:framerate]
++          if layout_area[:name] == :presentation && layout[:presentation_framerate]
++            area_framerate = layout[:presentation_framerate]
++          end
++
+           area.each do |video|
+             BigBlueButton.logger.debug "    tile location (#{tile_x}, #{tile_y})"
+ 
+             video_source = video[:source]
+ 
++            # The picture inside its tile: fitted, centred (the pad below)
++            picture_width, picture_height = aspect_scale(
++              video_source.aspect_ratio&.numerator, video_source.aspect_ratio&.denominator, tile_width, tile_height
++            )
++            cut_tiles << {
++              area: layout_area[:name],
++              filename: video[:filename].is_a?(String) ? File.basename(video[:filename]) : nil,
++              height: picture_height,
++              width: picture_width,
++              x: layout_area[:x] + tile_offset_x + (tile_x * tile_width) + ((tile_width - picture_width) / 2),
++              y: layout_area[:y] + tile_offset_y + (tile_y * tile_height) + ((tile_height - picture_height) / 2),
++            }
++
+             pad_name = "#{layout_area[:name]}_x#{tile_x}_y#{tile_y}"
+ 
+             xstack_inputs << "[#{pad_name}]"
+@@ -593,7 +638,7 @@
+               tile_height,
+               video[:timestamp],
+               duration,
+-              layout[:framerate],
++              area_framerate,
+               "#{cut[:timestamp]}_#{pad_name}"
+             )
+ 
+@@ -611,7 +656,8 @@
+               # VideoSourceReader requires at least one of ffmpeg_input or ffmpeg_filter, so if ffmpeg_filter is nil,
+               # ffmpeg_input must have been present. In that case, the video needs to be passed through to the correct pad name,
+               # and the "null" ffmpeg filter handles that.
+-              ffmpeg_filter << 'null'
++              # A lower drawing rate is brought back to the video's
++              ffmpeg_filter << (area_framerate == layout[:framerate] ? 'null' : "fps=#{layout[:framerate]}")
+             else
+               ffmpeg_filter << video_source_reader.ffmpeg_filter
+             end
+@@ -624,7 +670,7 @@
+           end
+           ffmpeg_filter <<
+             if xstack_inputs.length >= 2
+-              "xstack=fill=white:inputs=#{xstack_inputs.length}:layout=#{xstack_layout.join('|')}"
++              "xstack=fill=#{background_color}:inputs=#{xstack_inputs.length}:layout=#{xstack_layout.join('|')}"
+             else
+               # xstack doesn't support 1 input; a kind of odd omission
+               'null'
+@@ -635,6 +681,11 @@
+           ffmpeg_filter << "[#{layout_area[:name]}_in][#{layout_area[:name]}]overlay=x=#{layout_area[:x]}:y=#{layout_area[:y]}"
+         end
+ 
++        File.write(
++          "#{output}.layout.json",
++          JSON.generate(start: cut[:timestamp], end: cut[:next_timestamp], tiles: cut_tiles)
++        )
++
+         # As a safety measure, crop anything that might have made the frame too large.
+         ffmpeg_filter << ",crop=w=#{layout[:width]}:h=#{layout[:height]}:x=0:y=0"
+         ffmpeg_filter << ",trim=end=#{ms_to_s(duration)}"
+diff -ruN a/record-and-playback/video/scripts/process/video.rb b/record-and-playback/video/scripts/process/video.rb
+--- a/record-and-playback/video/scripts/process/video.rb
++++ b/record-and-playback/video/scripts/process/video.rb
+@@ -23,6 +23,7 @@
+ require 'active_support/core_ext/hash'
+ require 'optimist'
+ require 'yaml'
++require 'json'
+ require 'nokogiri'
+ require 'erb'
+ require 'cgi'
+@@ -147,6 +148,10 @@
+   end
+ end
+ 
++# The video's background colour (empty parts, bars around videos): the preset's
++# `background_color`, else white
++BigBlueButton::EDL::Video.background_color = preset['background_color'] if preset['background_color']
++
+ # Convert the layout to have symbol keys and area names, as required by the EDL render method
+ layout = preset.fetch('layout', {})
+ 
+@@ -228,6 +233,35 @@
+   layouts: preset['layouts']
+ )
+ 
++# layout.json, for players that draw over the video (names, who is talking) or
++# show only a part of it: where each webcam is, whose it is, and where the
++# presentation is. Pixels of the video, seconds of the recording
++camera_users = {}
++events.xpath('/recording/event[@eventname="StartWebRTCShareEvent"]').each do |event|
++  filename = event.at_xpath('filename')&.text
++  user_id = event.at_xpath('userId')&.text
++  camera_users[File.basename(filename)] = user_id if filename && user_id
++end
++user_names = BigBlueButton::Events.user_name_map(events)
++cut_layouts_file = "#{process_dir}/video.layout.json"
++cut_layouts = File.exist?(cut_layouts_file) ? JSON.parse(File.read(cut_layouts_file)) : []
++tiles = cut_layouts.flat_map do |cut|
++  cut['tiles'].select { |tile| tile['area'] == 'webcam' }.map do |tile|
++    {
++      start: cut['start'] / 1000.0, end: cut['end'] / 1000.0,
++      x: tile['x'], y: tile['y'], width: tile['width'], height: tile['height'], border: 0,
++      user: camera_users[tile['filename']],
++    }
++  end
++end
++people = tiles.map { |tile| tile[:user] }.compact.uniq.to_h { |user| [user, { name: user_names[user].to_s }] }
++content = layout[:areas].find { |area| area[:name] == :presentation }
++File.write("#{process_dir}/layout.json", JSON.generate(
++  width: layout[:width], height: layout[:height],
++  content: content && content.slice(:x, :y, :width, :height),
++  people: people, tiles: tiles
++))
++
+ logger.info "Encoding output files to #{preset['formats'].length} formats"
+ preset['formats'].each_with_index do |format, i|
+   format.symbolize_keys!
+diff -ruN a/record-and-playback/video/scripts/publish/video.rb b/record-and-playback/video/scripts/publish/video.rb
+--- a/record-and-playback/video/scripts/publish/video.rb
++++ b/record-and-playback/video/scripts/publish/video.rb
+@@ -108,6 +108,9 @@
+ # The chat events file
+ FileUtils.cp("#{process_dir}/video.xml", "#{publish_dir}/video.xml")
+ 
++# Where each webcam and the presentation are in the video (process/video.rb)
++FileUtils.cp("#{process_dir}/layout.json", "#{publish_dir}/layout.json") if File.exist?("#{process_dir}/layout.json")
++
+ # Copy over generated video files
+ preset['formats'].each_with_index do |format, i|
+   FileUtils.cp("#{process_dir}/video-#{i}.#{format['extension']}",
+diff -ruN a/record-and-playback/video/scripts/video.yml b/record-and-playback/video/scripts/video.yml
+--- a/record-and-playback/video/scripts/video.yml
++++ b/record-and-playback/video/scripts/video.yml
+@@ -30,6 +30,39 @@
+ # presets, your preset will *replace* the preset from this file.
+ presets:
+   # Each preset is identified by name
++  # The layout of the redesigned playback (bbb-playback): the presentation or
++  # the screen sharing on the left, a fixed column of webcams on the right, the
++  # same all through the recording (no alternative layouts), so a player can
++  # draw over it with layout.json. The presentation is drawn at a lower rate
++  # (presentation_framerate), its pictures change seldom
++  playback-1080p:
++    # The playback's background (bbb-playback studio/index.scss, --studio-player),
++    # so the video blends into the player: change them together
++    background_color: '#102133'
++    layout:
++      width: 1920
++      height: 1080
++      framerate: 15
++      presentation_framerate: 5
++      areas:
++        - { name: presentation, x: 24, y: 144, width: 1392, height: 783 }
++        - { name: webcam, x: 1440, y: 24, width: 456, height: 1032 }
++        - { name: deskshare, x: 24, y: 144, width: 1392, height: 783 }
++    formats:
++      - mimetype: 'video/mp4'
++        extension: m4v
++        parameters:
++          - [ '-c:v', 'copy',
++              '-c:a', 'aac', '-b:a', '128K',
++              '-f', 'mp4', '-movflags', 'faststart' ]
++        postprocess: []
++      - mimetype: 'video/mp4'
++        extension: mp4
++        parameters:
++          - [ '-c:v', 'copy',
++              '-c:a', 'aac', '-b:a', '128K',
++              '-f', 'mp4', '-movflags', 'faststart' ]
++        postprocess: []
+   1080p:
+     # The top level 'layout' key is required.
+     # It specifies the width, height, and framerate of the output video, and also the default
