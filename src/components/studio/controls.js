@@ -11,6 +11,7 @@ import { play, seek } from 'utils/actions';
 import player from 'utils/player';
 import Icon from './icon';
 import { buildMarkers, buildSegments, TYPES } from './markers';
+import usePublishedJson from './published';
 import Speed from './speed';
 import { formatTime, seekTo as setTime } from './utils';
 
@@ -31,6 +32,8 @@ const intlMessages = defineMessages({
   volume: { id: 'studio.controls.volume', defaultMessage: 'Volume' },
   fullscreen: { id: 'studio.controls.fullscreen', defaultMessage: 'Fullscreen' },
   exitFullscreen: { id: 'studio.controls.exitFullscreen', defaultMessage: 'Exit fullscreen' },
+  hand: { id: 'studio.marker.hand', defaultMessage: '{count, plural, one {# raised hand} other {# raised hands}}' },
+  reaction: { id: 'studio.marker.reaction', defaultMessage: '{count, plural, one {# reaction} other {# reactions}}' },
   chat: { id: 'studio.marker.chat', defaultMessage: '{count, plural, one {# moderator message} other {# moderator messages}}' },
   slide: { id: 'studio.marker.slide', defaultMessage: '{count, plural, one {# slide change} other {# slide changes}}' },
   poll: { id: 'studio.marker.poll', defaultMessage: '{count, plural, one {# poll} other {# polls}}' },
@@ -40,7 +43,9 @@ const intlMessages = defineMessages({
 
 const MARKER_ICONS = {
   chat: 'chat',
+  hand: 'hand',
   poll: 'poll',
+  reaction: 'reaction',
   screenshare: 'screenshare',
   slide: 'slides',
   video: 'video',
@@ -86,7 +91,8 @@ const Markers = ({ markers, shown }) => {
 const Timeline = ({ duration, time, label }) => {
   const track = useRef(null);
   const [dragTime, setDragTime] = useState(null);
-  const markers = useMemo(() => buildMarkers(duration), [duration]);
+  const timeline = usePublishedJson('timeline.json');
+  const markers = useMemo(() => buildMarkers(duration, timeline), [duration, timeline]);
   const segments = useMemo(() => buildSegments(duration), [duration]);
 
   const timeAt = (event) => {
