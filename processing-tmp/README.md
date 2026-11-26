@@ -19,6 +19,7 @@ needed. The playback reads one folder, `/playback/video/<record id>/`:
 | `talking.json` | `post_publish/studio_data.rb` | who is talking |
 | `timeline.json` | `post_publish/studio_data.rb` | raised hands and reactions on the timeline |
 | `participants.json` | `post_publish/participants.rb` | the participants list |
+| `notes.html` | `post_publish/studio_content.rb` | the Notes tab |
 
 **The video.** The playback looks for `video-0.m4v`, then `video-1.m4v`, then
 `video-0.mp4`. It plays the first one found and the download offers that same
@@ -29,18 +30,23 @@ Both hold the same H.264/AAC. Without any of them the recording shows the
 
 **The tabs.** All the tabs are always shown. When the recording has nothing
 for one, it says so. Notes, Chapters and Apps (polls) came from the
-`presentation` format, so they stay empty until the `video` format makes that
-data too.
+`presentation` format. The notes are back: `post_publish/studio_content.rb`
+puts them next to the video. Chapters and Apps (polls) stay empty until that
+data is made for the `video` format too.
 
-Every JSON is optional. If one is missing, its feature is just not shown.
+Every JSON and `notes.html` are optional. If one is missing, its feature is
+just not shown.
 
 ## What is here
 
 - `post_publish/studio_data.rb`: writes `talking.json` and `timeline.json`
   from the raw `events.xml`.
 - `post_publish/participants.rb`: writes `participants.json`.
+- `post_publish/studio_content.rb`: copies the shared notes from the raw
+  recording (`notes/notes.html`) to `notes.html`. A meeting without shared
+  notes gets no file.
 
-Both run as post_publish scripts of the `video` format (`-f video`) and write
+All run as post_publish scripts of the `video` format (`-f video`) and write
 into its folder. Copy them to
 `/usr/local/bigbluebutton/core/scripts/post_publish/` on a BBB server, or run
 them by hand on a recording that is already published:
@@ -49,6 +55,7 @@ them by hand on a recording that is already published:
 cd /usr/local/bigbluebutton/core/scripts/post_publish
 sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f video
 sudo -u bigbluebutton ruby participants.rb -m <record id> -f video
+sudo -u bigbluebutton ruby studio_content.rb -m <record id> -f video
 ```
 
 The raw files must still be on the server.
