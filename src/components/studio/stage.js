@@ -9,7 +9,13 @@ import layout from 'utils/layout';
 import { useDoubleTapSeek } from './gestures';
 import Icon from './icon';
 import { activeCue } from './transcript';
-import { MasterOverlay, useMasterFrame } from './master';
+import {
+  MASTER_CLIP_PATH,
+  MasterClip,
+  MasterOverlay,
+  masterAreas,
+  useMasterFrame,
+} from './master';
 
 const intlMessages = defineMessages({
   // The back and forward buttons' labels
@@ -184,6 +190,11 @@ const Stage = ({
   // stage and the clock; names and who is talking are drawn over it. With the
   // webcams off it shows only the presentation part of it
   if (master.status === 'found') {
+    // The presentation and the webcam tiles are square in the video: it is
+    // clipped to them with rounded corners, as the stage without a master
+    // video has them
+    const areas = masterAreas(layout, time, !!crop);
+
     return (
       <section className="studio-stage master" ref={stage}>
         <div className={cx('studio-master', { cropped: !!crop })} ref={masterBox}>
@@ -193,7 +204,10 @@ const Stage = ({
               height: frame.height, left: frame.left, top: frame.top, width: frame.width,
             } : undefined}
           >
-            <Webcams minimal sources={master.sources} />
+            <div className="studio-master-video" style={areas.length ? { clipPath: MASTER_CLIP_PATH } : undefined}>
+              <Webcams minimal sources={master.sources} />
+            </div>
+            {areas.length ? <MasterClip areas={areas} layout={layout} /> : null}
             {frame && !crop ? <MasterOverlay layout={layout} scale={frame.scale} time={time} /> : null}
           </div>
         </div>

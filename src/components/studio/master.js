@@ -158,11 +158,73 @@ const useMasterFrame = (element, width, height, crop) => {
   return box;
 };
 
+const onScreen = (tile, time) => tile.start <= time && time < tile.end;
+
+// Corner radii in video pixels, so they grow and shrink with the video. The
+// presentation's is the slide's of the stage without a master video (1.2% of
+// its width, index.scss), a tile's the webcams' there (8px), capped
+const CONTENT_RADIUS = 0.012;
+const TILE_RADIUS = 0.05;
+const TILE_RADIUS_MAX = 16;
+
+// The parts of the video with a picture in them at `time`: the presentation
+// and the webcam tiles on screen, or with `cropped` (webcams hidden) only the
+// presentation. [{ x, y, width, height, radius }] in video pixels; empty when
+// layout.json does not say
+const masterAreas = (layout, time, cropped) => {
+  if (!layout || !layout.width || !layout.height) return [];
+
+  const areas = [];
+  if (layout.content) {
+    areas.push({ ...layout.content, radius: layout.content.width * CONTENT_RADIUS });
+  }
+  if (!cropped) {
+    (layout.tiles || []).filter((tile) => onScreen(tile, time)).forEach((tile) => areas.push({
+      height: tile.height,
+      radius: Math.min(TILE_RADIUS_MAX, tile.width * TILE_RADIUS),
+      width: tile.width,
+      x: tile.x,
+      y: tile.y,
+    }));
+  }
+
+  return areas;
+};
+
+// One master video on the page
+const CLIP_ID = 'studio-master-clip';
+const MASTER_CLIP_PATH = `url(#${CLIP_ID})`;
+
+// Rounded corners for the presentation and the webcam tiles, which are square
+// in the video: the video is clipped to `areas` (MASTER_CLIP_PATH on its
+// element). In fractions of the video (objectBoundingBox), so the clip follows
+// the video's size by itself, also while it moves
+const MasterClip = ({ areas, layout }) => (
+  // Its size inline: the presentation's global `svg` rule would stretch it
+  <svg aria-hidden="true" focusable="false" style={{ height: 0, position: 'absolute', width: 0 }}>
+    <defs>
+      <clipPath clipPathUnits="objectBoundingBox" id={CLIP_ID}>
+        {areas.map((area) => (
+          <rect
+            height={area.height / layout.height}
+            key={`${area.x}-${area.y}-${area.width}-${area.height}`}
+            rx={area.radius / layout.width}
+            ry={area.radius / layout.height}
+            width={area.width / layout.width}
+            x={area.x / layout.width}
+            y={area.y / layout.height}
+          />
+        ))}
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 // Names and who is talking, over the webcam tiles of the video; `scale` is the
 // video's, the overlay covers the whole video
 const MasterOverlay = ({ layout, scale, time }) => {
   const talkingByUser = useTalking();
-  const tiles = layout.tiles.filter((tile) => tile.start <= time && time < tile.end);
+  const tiles = layout.tiles.filter((tile) => onScreen(tile, time));
 
   return (
     // Visual only: the names are in the participants list too
@@ -223,8 +285,11 @@ const DownloadButton = ({ master }) => {
 
 export {
   DownloadButton,
+  MASTER_CLIP_PATH,
+  MasterClip,
   MasterOverlay,
   findMasterSources,
+  masterAreas,
   useMasterFrame,
   useMasterVideo,
 };
