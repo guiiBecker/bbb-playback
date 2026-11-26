@@ -90,6 +90,8 @@ describe('storage', () => {
       'GET rec/captions.json',
       'GET rec/metadata.xml',
       'GET rec/notes.html',
+      'GET rec/polls.json',
+      'GET rec/slides.json',
       'GET rec/video.xml',
       M4V,
       M4V_SECOND,
@@ -185,5 +187,62 @@ describe('storage', () => {
 
     expect(storage.slides).toEqual([]);
     expect(storage.thumbnails).toEqual([]);
+  });
+
+  const json = (value) => ({ ok: true, status: 200, json: () => Promise.resolve(value) });
+
+  it('reads the notes, the polls and the slides published next to the video', async () => {
+    const pending = deferredFetch();
+    const storage = loadStorage();
+    const onLoaded = jest.fn();
+    storage.fetch('rec', jest.fn(), onLoaded, jest.fn());
+
+    ['captions.json', 'metadata.xml', 'video.xml'].forEach(file => pending[fileKey(file)].resolve(MISSING));
+    pending[fileKey('notes.html')].resolve({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve('<html>\n<body>\n<p>Agenda</p>\n</body>\n</html>'),
+    });
+    pending[fileKey('polls.json')].resolve(json([
+      { answers: [{ id: 0, key: 'Yes', numVotes: 3 }], question: 'Ready?', timestamp: 23, type: 'YN' },
+    ]));
+    pending[fileKey('slides.json')].resolve(json([
+      { image: 'slides/p/thumb-1.png', presentation: 'p', slide: 1, time: 0, title: 'Welcome', type: 'slide' },
+      { time: 28, type: 'screenshare' },
+    ]));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
+    await flush();
+
+    expect(onLoaded).toHaveBeenCalledTimes(1);
+    expect(storage.notes).toContain('<p>Agenda</p>');
+    expect(storage.polls.map(({ question, timestamp }) => [question, timestamp])).toEqual([['Ready?', 23]]);
+    expect(storage.slides.map(({ src, timestamp }) => [src, timestamp])).toEqual([
+      ['slides/p/thumb-1.png', 0],
+      ['screenshare', 28],
+    ]);
+  });
+
+  it('plays a recording whose optional JSON is not JSON, as without it', async () => {
+    const pending = deferredFetch();
+    const storage = loadStorage();
+    const onError = jest.fn();
+    const onLoaded = jest.fn();
+    storage.fetch('rec', jest.fn(), onLoaded, onError);
+
+    // A server's page for an unknown path, answered with 200
+    const page = { ok: true, status: 200, json: () => Promise.reject(new SyntaxError('Unexpected token <')) };
+    ['metadata.xml', 'notes.html', 'video.xml'].forEach(file => pending[fileKey(file)].resolve(MISSING));
+    ['captions.json', 'polls.json', 'slides.json'].forEach(file => pending[fileKey(file)].resolve(page));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
+    await flush();
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(onLoaded).toHaveBeenCalledTimes(1);
+    expect(storage.polls).toEqual([]);
+    expect(storage.slides).toEqual([]);
   });
 });

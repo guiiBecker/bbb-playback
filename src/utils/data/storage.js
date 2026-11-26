@@ -64,7 +64,8 @@ const fetchFile = (data, recordId, onUpdate, onLoaded, onError) => {
       const fileType = getFileType(file);
       switch (fileType) {
         case 'json':
-          return response.json();
+          // Not JSON (a server's page for an unknown path): as if missing
+          return response.json().catch(() => null);
         case 'html':
           return response.text();
         case 'svg':
@@ -177,6 +178,12 @@ const storage = {
   get polls() {
     return DATA[ID.POLLS];
   },
+  // What the presentation area showed, in order (slides.json):
+  // [{ timestamp, src, alt, image, number, width, height }], `src` being
+  // 'screenshare' for screen sharing
+  get slides() {
+    return DATA[ID.SLIDES] || [];
+  },
   get videos() {
     return DATA[ID.VIDEOS];
   },
@@ -216,9 +223,6 @@ const storage = {
   // format's files only
   get shapes() {
     return DATA[ID.SHAPES] || {};
-  },
-  get slides() {
-    return this.shapes[ID.SLIDES] || [];
   },
   get canvases() {
     return this.shapes[ID.CANVASES] || [];

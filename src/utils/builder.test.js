@@ -135,3 +135,31 @@ it('still reads the presentation format\'s metadata.xml', async () => {
 
   expect(metadata).toEqual({ end: 2, id: 'abc-1', name: 'Room', participants: 3, start: 1 });
 });
+
+it('reads slides.json: slides with their picture and title, and screen sharing', async () => {
+  const slides = await build('slides.json', [
+    { height: 85, image: 'slides/p/thumb-2.png', presentation: 'p', slide: 2, time: 10, title: 'Agenda', type: 'slide', width: 150 },
+    { presentation: 'p', slide: 5, time: 11, type: 'slide' },
+    { time: 28, type: 'screenshare' },
+  ]);
+
+  expect(slides).toEqual([
+    { alt: 'Agenda', height: 85, id: 1, image: 'slides/p/thumb-2.png', number: 2, src: 'slides/p/thumb-2.png', timestamp: 10, width: 150 },
+    { alt: '', height: undefined, id: 2, image: null, number: 5, src: 'slide-p-5', timestamp: 11, width: undefined },
+    { id: 3, src: 'screenshare', timestamp: 28 },
+  ]);
+});
+
+it('leaves out of slides.json what it does not know', async () => {
+  expect(await build('slides.json', null)).toEqual([]);
+  expect(await build('slides.json', { time: 1 })).toEqual([]);
+  expect(await build('slides.json', [null, { type: 'slide' }, { time: 3, type: 'video' }])).toEqual([]);
+});
+
+it('reads polls.json, also when it is not a list or a poll has no answers', async () => {
+  expect(await build('polls.json', null)).toEqual([]);
+  expect(await build('polls.json', { timestamp: 1 })).toEqual([]);
+  expect(await build('polls.json', [{ question: 'Ready?', timestamp: 23 }])).toEqual([
+    { answers: [], question: 'Ready?', timestamp: 23 },
+  ]);
+});

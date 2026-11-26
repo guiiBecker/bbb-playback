@@ -17,15 +17,18 @@ const date = { enabled: true };
 // The recording is the "video" format's (/playback/video/<record id>/): its
 // MP4 (or M4V), metadata, captions and chat (video.xml, the same
 // <chattimeline> entries as the presentation format's slides_new.xml), and
-// the shared notes (notes.html, put there by the server's post_publish
-// studio_content.rb; a recording without it has no notes). The JSON files
-// next to them (layout.json, talking.json, timeline.json, participants.json)
-// are optional and fetched where they are used
+// what the server's post_publish studio_content.rb puts there: the shared
+// notes (notes.html), the polls (polls.json) and what the presentation area
+// showed (slides.json). A recording without one of these has none of it. The
+// JSON files next to them (layout.json, talking.json, timeline.json,
+// participants.json) are optional and fetched where they are used
 const files = {
   captions: 'captions.json',
   chat: 'video.xml',
   metadata: 'metadata.xml',
   notes: 'notes.html',
+  polls: 'polls.json',
+  slides: 'slides.json',
 };
 
 const locale = { default: 'en' };
