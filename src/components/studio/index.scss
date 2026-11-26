@@ -44,6 +44,9 @@
   // The redesign's dark player and its surroundings. No design system
   // counterpart yet, so no theme variable behind them
   --studio-shell: #1F2328;                // around the panel and the player
+  // INFO: the recording's master MP4 is rendered with this same colour as its
+  // background (record-and-playback video format, video.yml preset
+  // `background_color`), so it blends into the stage: change both together
   --studio-player: #001428;               // stage and controls, also in fullscreen
   --studio-player-text: #F1F3F6;
   --studio-player-muted: #B4BCC8;
@@ -1657,6 +1660,122 @@
 
   .studio-webcams-toggle .studio-icon {
     animation: none;
+  }
+}
+
+// The master MP4 (master.js): one video with slides, webcams and screen
+// sharing fills the stage, with names and who is talking drawn over it
+.studio-stage.master {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.studio-master {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  .webcams-wrapper,
+  .video-js {
+    background-color: transparent;
+    height: 100%;
+    width: 100%;
+  }
+
+  // The whole frame, never cropped: it has the slides' text in it
+  video {
+    object-fit: contain;
+  }
+}
+
+// The whole video, placed by useMasterFrame (master.js): all of it, or larger
+// with only the presentation part inside the stage
+.studio-master-frame {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: height .3s ease, left .3s ease, top .3s ease, width .3s ease;
+  }
+}
+
+.studio-master-overlay {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.studio-master-tile {
+  border: 2px solid transparent;
+  border-radius: var(--studio-radius-small);
+  position: absolute;
+  transition: border-color .2s;
+
+  // Who is talking: the brand blue, as in the mockup
+  &.talking {
+    border-color: var(--studio-primary);
+  }
+}
+
+.studio-master-name {
+  background-color: rgba(0, 0, 0, .6);
+  border-radius: 4px;
+  bottom: var(--studio-space-xs);
+  color: #FFFFFF;
+  font-size: var(--studio-font-xs);
+  left: var(--studio-space-xs);
+  max-width: calc(100% - 2.5rem);
+  overflow: hidden;
+  padding: 0 var(--studio-space-xs);
+  position: absolute;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-master-mic {
+  align-items: center;
+  background-color: var(--color-success, #008081); // BBB colorSuccess
+  border-radius: 50%;
+  bottom: var(--studio-space-xs);
+  color: #FFFFFF;
+  display: flex;
+  height: 1.25rem;
+  justify-content: center;
+  position: absolute;
+  right: var(--studio-space-xs);
+  width: 1.25rem;
+}
+
+.studio-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--studio-space-s);
+  justify-content: space-between;
+  width: 100%;
+}
+
+// The master MP4's download (master.js)
+.studio-download {
+  align-items: center;
+  border: 1px solid var(--studio-line);
+  border-radius: var(--studio-radius-small);
+  color: var(--studio-text);
+  display: flex;
+  flex-shrink: 0;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+
+  &:hover {
+    background-color: var(--studio-highlight);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--studio-primary);
+    outline-offset: 2px;
   }
 }
 

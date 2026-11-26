@@ -9,6 +9,7 @@ import layout from 'utils/layout';
 import { useDoubleTapSeek } from './gestures';
 import Icon from './icon';
 import { activeCue } from './transcript';
+import { MasterOverlay, useMasterFrame } from './master';
 
 const intlMessages = defineMessages({
   // The back and forward buttons' labels
@@ -154,12 +155,51 @@ const usePresentationShown = () => {
 // The recording keeps all webcams in a single video. `cues` is null while the
 // captions are off. With `webcamsOn` false the webcams column folds away and
 // the presentation takes its room; the video stays, it carries the sound
-const Stage = ({ cues, hasVideo, ratio, time, webcamsOn }) => {
+const Stage = ({
+  cues,
+  hasVideo,
+  master,
+  ratio,
+  time,
+  webcamsOn,
+}) => {
   const presentation = usePresentationShown();
   const stage = useRef(null);
   const content = useRef(null);
   const picture = usePicture(content);
   const seekFeedback = useDoubleTapSeek(stage);
+  const masterBox = useRef(null);
+  const layout = master.layout || null;
+  // Webcams hidden: only the presentation / screen sharing part of the video
+  const crop = layout && layout.content && !webcamsOn ? layout.content : null;
+  const frame = useMasterFrame(masterBox, layout && layout.width, layout && layout.height, crop);
+
+  // Until the master MP4 has been looked for, nothing: the master player is
+  // created once, with the source it gets on mount
+  if (master.status === 'checking') return <section className="studio-stage master" ref={stage} />;
+
+  // The master MP4 has it all (slides, webcams, screen sharing): it is the
+  // stage and the clock; names and who is talking are drawn over it. With the
+  // webcams off it shows only the presentation part of it
+  if (master.status === 'found') {
+    return (
+      <section className="studio-stage master" ref={stage}>
+        <div className={cx('studio-master', { cropped: !!crop })} ref={masterBox}>
+          <div
+            className="studio-master-frame"
+            style={frame ? {
+              height: frame.height, left: frame.left, top: frame.top, width: frame.width,
+            } : undefined}
+          >
+            <Webcams minimal sources={[{ src: master.src, type: master.type }]} />
+            {frame && !crop ? <MasterOverlay layout={layout} scale={frame.scale} time={time} /> : null}
+          </div>
+        </div>
+        {cues ? <Captions cues={cues} picture={null} time={time} /> : null}
+        <SeekFeedback feedback={seekFeedback} />
+      </section>
+    );
+  }
 
   return (
     <section

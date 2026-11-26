@@ -103,5 +103,6 @@
   "studio.chapters.aria": "Chapters",
   "studio.chapters.chapter": "Chapter {number}",
   "studio.chapters.empty": "No chapters in this recording.",
-  "studio.chapters.slide": "Slide {number}"
+  "studio.chapters.slide": "Slide {number}",
+  "studio.download.video": "Download the video"
 }

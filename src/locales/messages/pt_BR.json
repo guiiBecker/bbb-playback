@@ -102,5 +102,6 @@
   "studio.chapters.aria": "Capítulos",
   "studio.chapters.chapter": "Capítulo {number}",
   "studio.chapters.empty": "Nenhum capítulo nesta gravação.",
-  "studio.chapters.slide": "Slide {number}"
+  "studio.chapters.slide": "Slide {number}",
+  "studio.download.video": "Baixar o vídeo"
 }
