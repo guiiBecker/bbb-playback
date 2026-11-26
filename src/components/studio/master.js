@@ -60,35 +60,47 @@ const useTalking = () => {
 
 const within = (spans, time) => (spans || []).some(({ start, stop }) => start <= time && time < stop);
 
-// Where the video goes inside its element: the whole frame (object-fit
-// contain), or with `crop` ({x, y, width, height} in video pixels) only that
-// part of it, as large as fits; the element clips the rest. { left, top,
-// width, height } of the whole video in CSS pixels, and its scale
+// Where a video of `width` x `height` goes inside a box of `boxWidth` x
+// `boxHeight`: the whole frame (object-fit contain), or with `crop` ({x, y,
+// width, height} in video pixels) only that part of it, as large as fits and
+// centred; the box clips the rest. { left, top, width, height } of the whole
+// video in CSS pixels, and its scale
+const fitFrame = (boxWidth, boxHeight, width, height, crop = null) => {
+  const area = crop || { height, width, x: 0, y: 0 };
+  const scale = Math.min(boxWidth / area.width, boxHeight / area.height);
+
+  return {
+    height: height * scale,
+    left: (boxWidth - area.width * scale) / 2 - area.x * scale,
+    scale,
+    top: (boxHeight - area.height * scale) / 2 - area.y * scale,
+    width: width * scale,
+  };
+};
+
+// fitFrame for the element, again whenever it is resized
 const useMasterFrame = (element, width, height, crop) => {
   const [box, setBox] = useState(null);
-  const area = crop || { height, width, x: 0, y: 0 };
+  // The crop's numbers, not the object: a new object each render must not
+  // measure again
+  const {
+    height: areaHeight, width: areaWidth, x, y,
+  } = crop || { height, width, x: 0, y: 0 };
 
   useEffect(() => {
     const node = element.current;
     if (!node || !width || !height) return undefined;
 
-    const update = () => {
-      const { clientWidth: w, clientHeight: h } = node;
-      const scale = Math.min(w / area.width, h / area.height);
-      setBox({
-        height: height * scale,
-        left: (w - area.width * scale) / 2 - area.x * scale,
-        scale,
-        top: (h - area.height * scale) / 2 - area.y * scale,
-        width: width * scale,
-      });
+    const area = {
+      height: areaHeight, width: areaWidth, x, y,
     };
+    const update = () => setBox(fitFrame(node.clientWidth, node.clientHeight, width, height, area));
     const observer = new ResizeObserver(update);
     observer.observe(node);
     update();
 
     return () => observer.disconnect();
-  }, [element, width, height, area.x, area.y, area.width, area.height]);
+  }, [element, width, height, x, y, areaWidth, areaHeight]);
 
   return box;
 };
@@ -157,6 +169,7 @@ const DownloadButton = () => {
 
 export {
   DownloadButton,
+  fitFrame,
   MasterOverlay,
   useMasterFrame,
   useMasterLayout,
