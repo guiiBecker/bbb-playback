@@ -1,61 +1,44 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
+import { buildVideoURL } from 'utils/data';
 import storage from 'utils/data/storage';
 import Icon from './icon';
 import usePublishedJson from './published';
 
-// The recording's master MP4: the server's "video" recording format, in the
-// playback's layout (studio-1080 preset: the presentation or screen sharing on
-// the left, the webcams in a column on the right), at /playback/video/<id>/.
-// When it is there the stage plays it and the download button offers the very
-// same file. layout.json, next to it, says where each webcam tile sits in the
-// video and whose it is, and talking.json (the presentation format's, as
-// mconf-live publishes it) who talks when, so the names and who is talking
-// are drawn over it,
-// and where the presentation is, so the webcams can be hidden by showing only
-// that part of the video (they stay in the downloaded file).
+// The recording's MP4: the server's "video" recording format, in the
+// playback's layout (the presentation or screen sharing on the left, the
+// webcams in a column on the right), at /playback/video/<id>/. It is the only
+// video the player plays (utils/data/storage checks it is there) and the
+// download button offers the very same file. layout.json, next to it, says
+// where each webcam tile sits in the video and whose it is, and where the
+// presentation is; talking.json (next to the presentation format's files)
+// says who talks when. With them the names and who is talking are drawn over
+// the video, and the webcams can be hidden by showing only the presentation
+// part of it (they stay in the downloaded file).
 
 const intlMessages = defineMessages({
   download: { id: 'studio.download.video', defaultMessage: 'Download the video' },
 });
 
-const base = () => `/playback/video/${storage.metadata.id}`;
-
-// { status: 'checking' | 'found' | 'none', src, type, layout }
-const useMasterVideo = () => {
-  const [master, setMaster] = useState({ status: 'checking' });
+// layout.json, or null while it loads or when it is not there (the video
+// then plays without overlays)
+const useMasterLayout = () => {
+  const [layout, setLayout] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    const find = async () => {
-      const src = `${base()}/video-0.mp4`;
-      try {
-        const response = await fetch(src, { method: 'HEAD' });
-        // Only a video counts: a server that answers unknown paths with a
-        // page (the dev server, a single page app's fallback) says 200 too
-        const answered = (response.headers.get('content-type') || '').toLowerCase();
-        if (!response.ok || !answered.startsWith('video/')) return { status: 'none' };
-      } catch (error) {
-        return { status: 'none' };
-      }
-      let layout = null;
-      try {
-        const response = await fetch(`${base()}/layout.json`, { cache: 'no-store' });
-        if (response.ok) layout = await response.json();
-      } catch (error) {
-        // no overlays: the video still plays
-      }
-      return {
-        layout, src, status: 'found', type: 'video/mp4',
-      };
-    };
-    find().then((result) => { if (!cancelled) setMaster(result); });
+    fetch(buildVideoURL('layout.json'), { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .catch(() => null)
+      .then((data) => {
+        if (!cancelled && data && Array.isArray(data.tiles) && data.people) setLayout(data);
+      });
 
     return () => { cancelled = true; };
   }, []);
 
-  return master;
+  return layout;
 };
 
 // talking.json: { "<user id>": { userName, events: [{ start, stop }] } } ->
@@ -154,18 +137,17 @@ const fileName = (src) => {
 };
 
 // The same file the stage plays
-const DownloadButton = ({ master }) => {
+const DownloadButton = () => {
   const intl = useIntl();
-  if (master.status !== 'found') return null;
-
+  const { url } = storage.media;
   const label = intl.formatMessage(intlMessages.download);
 
   return (
     <a
       aria-label={label}
       className="studio-download"
-      download={fileName(master.src)}
-      href={master.src}
+      download={fileName(url)}
+      href={url}
       title={label}
     >
       <Icon name="download" size={18} />
@@ -177,5 +159,5 @@ export {
   DownloadButton,
   MasterOverlay,
   useMasterFrame,
-  useMasterVideo,
+  useMasterLayout,
 };

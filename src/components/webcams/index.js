@@ -28,26 +28,8 @@ const intlMessages = defineMessages({
   },
 });
 
-const buildSources = () => {
-  if (storage.fallback) {
-    return [
-      {
-        src: buildFileURL('audio/audio.webm'),
-        type: 'audio/webm',
-      },
-    ];
-  }
-
-  return [
-    {
-      src: buildFileURL('video/webcams.mp4'),
-      type: 'video/mp4',
-    }, {
-      src: buildFileURL('video/webcams.webm'),
-      type: 'video/webm',
-    },
-  ].filter(source => storage.media.find(m => source.type.includes(m)));
-};
+// The recording's MP4 (the "video" format), the only video the player plays
+const buildSources = () => [{ src: storage.media.url, type: storage.media.type }];
 
 const buildTracks = () => {
   return storage.captions.map(lang => {
@@ -102,11 +84,9 @@ const dispatchTimeUpdate = (time) => {
   document.dispatchEvent(event);
 };
 
-// `sources` replaces the recording's webcams video: the redesigned player's
-// master MP4 (studio/master.js)
-const Webcams = ({ minimal = false, sources: override = null }) => {
+const Webcams = ({ minimal = false }) => {
   const intl = useIntl();
-  const sources = useRef(override || buildSources());
+  const sources = useRef(buildSources());
   const tracks = useRef(buildTracks());
   // Read once: the player is created on mount only
   const bare = useRef(minimal);

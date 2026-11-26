@@ -1,7 +1,10 @@
 import { files } from 'config';
 import { ERROR } from 'utils/constants';
 
-const MISSING = { ok: false, status: 404 };
+const MISSING = { ok: false, status: 404, headers: { get: () => null } };
+const VIDEO = { ok: true, status: 200, headers: { get: () => 'video/mp4' } };
+// The recording's MP4, the "video" format's, as the fetch mock keys it
+const MASTER = 'HEAD rec/video-0.mp4';
 
 // Fresh storage module per test: it keeps the fetched data in module state
 const loadStorage = () => {
@@ -42,8 +45,7 @@ describe('storage', () => {
     const names = Object.values(files);
     const last = names.pop();
     names.forEach(file => pending[fileKey(file)].resolve(MISSING));
-    pending['HEAD video/webcams.mp4'].resolve({ ok: true, url: 'rec/video/webcams.mp4' });
-    pending['HEAD video/webcams.webm'].resolve(MISSING);
+    pending[MASTER].resolve(VIDEO);
     await flush();
 
     expect(onLoaded).not.toHaveBeenCalled();
@@ -65,54 +67,52 @@ describe('storage', () => {
 
     expect(onLoaded).not.toHaveBeenCalled();
 
-    pending['HEAD video/webcams.mp4'].resolve({ ok: true, url: 'rec/video/webcams.mp4' });
-    pending['HEAD video/webcams.webm'].resolve(MISSING);
+    pending[MASTER].resolve(VIDEO);
     await flush();
 
     expect(onLoaded).toHaveBeenCalledTimes(1);
-    expect(storage.media).toEqual(['mp4']);
+    expect(storage.media).toEqual({ type: 'video/mp4', url: '/playback/video/rec/video-0.mp4' });
   });
 
-  it('keeps the format of a redirected probe', async () => {
+  it('probes only the MP4, no WebM', async () => {
     const pending = deferredFetch();
     const storage = loadStorage();
     storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
 
-    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
-    pending['HEAD video/webcams.mp4'].resolve({ ok: true, url: 'https://cdn/webcams.mp4?signature=x' });
-    pending['HEAD video/webcams.webm'].resolve(MISSING);
-    await flush();
+    const probes = Object.keys(pending).filter(key => key.startsWith('HEAD'));
 
-    expect(storage.media).toEqual(['mp4']);
+    expect(probes).toEqual([MASTER]);
+    expect(Object.keys(pending).some(key => /webm|audio\./.test(key))).toBe(false);
   });
 
-  it('keeps the formats whose probe did not fail', async () => {
-    const pending = deferredFetch();
-    const storage = loadStorage();
-    const onLoaded = jest.fn();
-    const onError = jest.fn();
-    storage.fetch('rec', jest.fn(), onLoaded, onError);
+  const failures = [
+    ['is not there', MISSING],
+    ['answers with a page, not a video', { ok: true, status: 200, headers: { get: () => 'text/html' } }],
+  ];
+  failures.forEach(([label, response]) => {
+    it(`reports the recording as not found when the MP4 ${label}`, async () => {
+      const pending = deferredFetch();
+      const storage = loadStorage();
+      const onError = jest.fn();
+      const onLoaded = jest.fn();
+      storage.fetch('rec', jest.fn(), onLoaded, onError);
 
-    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
-    pending['HEAD video/webcams.mp4'].resolve({ ok: true, url: 'rec/video/webcams.mp4' });
-    pending['HEAD video/webcams.webm'].reject(new TypeError('Failed to fetch'));
-    await flush();
+      Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
+      pending[MASTER].resolve(response);
+      await flush();
 
-    expect(onError).not.toHaveBeenCalled();
-    expect(onLoaded).toHaveBeenCalledTimes(1);
-    expect(storage.media).toEqual(['mp4']);
+      expect(onError).toHaveBeenCalledWith(ERROR.NOT_FOUND);
+      expect(onLoaded).not.toHaveBeenCalled();
+    });
   });
 
-  it('reports an error when every media probe fails', async () => {
+  it('reports the recording as not found when the probe fails', async () => {
     const pending = deferredFetch();
     const storage = loadStorage();
     const onError = jest.fn();
     storage.fetch('rec', jest.fn(), jest.fn(), onError);
 
-    pending['HEAD video/webcams.mp4'].reject(new TypeError('Failed to fetch'));
-    pending['HEAD video/webcams.webm'].reject(new TypeError('Failed to fetch'));
-    await flush();
-    pending['HEAD audio/audio.webm'].reject(new TypeError('Failed to fetch'));
+    pending[MASTER].reject(new TypeError('Failed to fetch'));
     await flush();
 
     expect(onError).toHaveBeenCalledWith(ERROR.NOT_FOUND);

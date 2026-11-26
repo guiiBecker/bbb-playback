@@ -32,11 +32,6 @@ const files = {
 
 const locale = { default: 'en' };
 
-const medias = [
-  'mp4',
-  'webm',
-];
-
 const player = {
   rps: 10,
   rates: [0.5, 1, 1.25, 1.5, 1.75, 2],
@@ -83,7 +78,6 @@ export {
   date,
   files,
   locale,
-  medias,
   player,
   search,
   shortcuts,

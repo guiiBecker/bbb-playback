@@ -4,8 +4,8 @@ import { ID } from 'utils/constants';
 import storage from 'utils/data/storage';
 import Controls from './controls';
 import Panel from './panel';
-import Stage, { usePresentationShown } from './stage';
-import { useMasterVideo } from './master';
+import Stage from './stage';
+import { useMasterLayout } from './master';
 import { pickLocale, useTranscript } from './transcript';
 import { useFullscreen, usePlayerState } from './hooks';
 import './index.scss';
@@ -28,16 +28,12 @@ const Studio = () => {
   const [captionsOn, setCaptionsOn] = useState(true);
   const transcript = useTranscript(locale);
   const hasCaptions = transcript.cues.length > 0;
-  // The webcams are on by default; turning them off gives their room to the
-  // presentation, so the button is only there when both are shown
+  // The webcams are on by default; turning them off shows only the
+  // presentation part of the video, so the button needs layout.json to say
+  // where that is
   const [webcamsOn, setWebcamsOn] = useState(true);
-  // The recording's master MP4 (studio/master.js): the stage and the download
-  const master = useMasterVideo();
-  // With the master MP4, hiding the webcams shows only its presentation part
-  const presentationShown = usePresentationShown();
-  const webcamsToggle = master.status === 'found'
-    ? Boolean(master.layout && master.layout.content)
-    : presentationShown && state.hasVideo && master.status === 'none';
+  const layout = useMasterLayout();
+  const webcamsToggle = Boolean(layout && layout.content);
   // Fullscreen covers the stage and the controls only, see index.scss
   const main = useRef(null);
   const fullscreen = useFullscreen(main);
@@ -49,7 +45,6 @@ const Studio = () => {
       id={ID.PLAYER}
     >
       <Panel
-        master={master}
         captions={captions}
         duration={state.duration}
         locale={locale}
@@ -62,10 +57,8 @@ const Studio = () => {
             panel's heading below says the same */}
         <p aria-hidden="true" className="studio-player-title">{name}</p>
         <Stage
-          master={master}
           cues={captionsOn ? transcript.cues : null}
-          hasVideo={state.hasVideo}
-          ratio={state.ratio}
+          layout={layout}
           time={state.time}
           webcamsOn={webcamsOn}
         />

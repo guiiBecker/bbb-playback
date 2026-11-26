@@ -1,7 +1,4 @@
-import {
-  files,
-  medias,
-} from 'config';
+import { files } from 'config';
 import {
   addAlternatesToThumbnails,
   build,
@@ -13,6 +10,7 @@ import {
 } from 'utils/constants';
 import {
   buildFileURL,
+  buildVideoURL,
   getFileType,
 } from 'utils/data';
 import {
@@ -31,8 +29,6 @@ const STATE = {
 let STATUS = STATE.WAITING;
 
 const DATA = {};
-
-let FALLBACK = false;
 
 const hasFetched = () => {
   if (STATUS !== STATE.WAITING) return true;
@@ -94,47 +90,23 @@ const fetchFile = (data, recordId, onUpdate, onLoaded, onError) => {
   }).catch(error => onError(ERROR.NOT_FOUND));
 };
 
+// The recording's video is the "video" format's MP4, and only it: without it
+// the recording cannot be played. Only a video answer counts: a server that
+// answers unknown paths with a page (a single page app's fallback) says 200 too
 const fetchMedia = (recordId, onUpdate, onLoaded, onError) => {
-  const fetches = medias.map(type => {
-    const url = buildFileURL(`video/webcams.${type}`, recordId);
-    // A probe failing at the network level must not discard the other formats
-    return fetch(url, { method: 'HEAD' }).catch(error => {
-      logger.warn(ID.STORAGE, ID.MEDIA, type, error);
-      return null;
-    });
-  });
-
-  Promise.all(fetches).then(responses => {
-    const media = medias.filter((type, index) => responses[index]?.ok);
-    logger.debug(ID.STORAGE, ID.MEDIA, media);
-
-    if (media.length > 0) {
-      DATA[ID.MEDIA] = media;
-      onUpdate(ID.MEDIA);
-      if (hasLoaded()) onLoaded();
-    } else {
-      tryMediaFallback(recordId, onUpdate, onLoaded, onError);
-    }
-  });
-};
-
-// Try playing old recording formats with audio only
-// IMPORTANT: This will only work for webm format
-//
-// TODO: Add support for mp3 format
-const tryMediaFallback = (recordId, onUpdate, onLoaded, onError) => {
-  const url = buildFileURL('audio/audio.webm', recordId);
+  const url = buildVideoURL('video-0.mp4', recordId);
   fetch(url, { method: 'HEAD' }).then(response => {
-    const { ok } = response;
-    if (ok) {
-      logger.debug(ID.STORAGE, ID.MEDIA, response);
-      FALLBACK = true;
-      DATA[ID.MEDIA] = ['webm'];
-      onUpdate(ID.MEDIA);
-      if (hasLoaded()) onLoaded();
-    } else {
+    const type = (response.headers?.get('content-type') || '').toLowerCase();
+    if (!response.ok || !type.startsWith('video/')) {
+      logger.warn(ID.STORAGE, ID.MEDIA, response);
       onError(ERROR.NOT_FOUND);
+      return;
     }
+
+    logger.debug(ID.STORAGE, ID.MEDIA, response);
+    DATA[ID.MEDIA] = { type: 'video/mp4', url };
+    onUpdate(ID.MEDIA);
+    if (hasLoaded()) onLoaded();
   }).catch(error => {
     logger.warn(ID.STORAGE, ID.MEDIA, error);
     onError(ERROR.NOT_FOUND);
@@ -156,9 +128,6 @@ const storage = {
   },
   get data() {
     return DATA;
-  },
-  get fallback() {
-    return FALLBACK;
   },
   get built() {
     return {
@@ -203,6 +172,7 @@ const storage = {
     const result = DATA[ID.CURSOR];
     return result ? result.data : [];
   },
+  // { url, type } of the recording's MP4
   get media() {
     return DATA[ID.MEDIA];
   },

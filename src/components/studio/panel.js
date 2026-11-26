@@ -26,7 +26,7 @@ const intlMessages = defineMessages({
 // Header with the recording (name, date and time, duration, participants),
 // tabs, the selected tab's content and a footer for actions. The footer
 // actions come in a later step
-const Panel = ({ captions, duration, locale, master, setLocale, time, transcript }) => {
+const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
   // Opens on the chat, the first tab
   const [tab, setTab] = useState(TABS[0]);
@@ -39,7 +39,7 @@ const Panel = ({ captions, duration, locale, master, setLocale, time, transcript
       <header className="studio-panel-header">
         <div className="studio-heading">
           <h1 className="studio-room">{name}</h1>
-          <DownloadButton master={master} />
+          <DownloadButton />
         </div>
         <p className="studio-date">
           <span>{intl.formatDate(new Date(start), { dateStyle: 'medium', timeStyle: 'short' })}</span>
