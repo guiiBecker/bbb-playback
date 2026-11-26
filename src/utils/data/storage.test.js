@@ -101,7 +101,10 @@ describe('storage', () => {
     storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
 
     expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/notes.html', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
-    expect(global.fetch.mock.calls.every(([url]) => url.startsWith('/playback/video/rec/'))).toBe(true);
+    // Everything else is the presentation format's optional data, never a video
+    const elsewhere = global.fetch.mock.calls.map(([url]) => url).filter(url => !url.startsWith('/playback/video/rec/'));
+    expect(elsewhere.every(url => url.startsWith('/presentation/rec/'))).toBe(true);
+    expect(elsewhere.some(url => /\.(webm|mp4|m4v|ogg)$/.test(url))).toBe(false);
   });
 
   it('reads the notes, the polls and the slides from the presentation format\'s folder', async () => {
