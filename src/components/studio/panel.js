@@ -7,6 +7,7 @@ import Attendees from './attendees';
 import { DownloadButton } from './master';
 import Chapters from './chapters';
 import Chat from './chat';
+import LocaleSwitcher from './locale';
 import Notes from './notes';
 import Transcript from './transcript';
 
@@ -39,7 +40,10 @@ const Panel = ({ captions, duration, locale, master, setLocale, time, transcript
       <header className="studio-panel-header">
         <div className="studio-heading">
           <h1 className="studio-room">{name}</h1>
-          <DownloadButton master={master} />
+          <div className="studio-heading-actions">
+            <LocaleSwitcher />
+            <DownloadButton master={master} />
+          </div>
         </div>
         <p className="studio-date">
           <span>{intl.formatDate(new Date(start), { dateStyle: 'medium', timeStyle: 'short' })}</span>
