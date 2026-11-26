@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
+import { buildThumbnailItems } from 'components/thumbnails/utils';
 import { ID } from 'utils/constants';
-import { buildFileURL } from 'utils/data';
+import { buildPresentationFileURL } from 'utils/data';
 import storage from 'utils/data/storage';
 import { useFollow } from './follow';
 import Icon from './icon';
@@ -24,7 +25,14 @@ const MIN_CHAPTER = 5;
 // come in with the last of them
 const STAGGERED = 8;
 
-// The slide's first line of text, if it has any
+// "presentation/…/thumbnails/thumb-3.png", "…/svgs/slide3.svg" -> 3
+const slideNumber = (src) => {
+  const match = /(?:thumb-|slide-?)(\d+)\.\w+$/.exec(src || '');
+
+  return match ? Number(match[1]) : null;
+};
+
+// The slide's first line of text (presentation_text.json), if it has any
 const firstLine = (text) => (text || '')
   .split('\n')
   .map((line) => line.replace(/\s+/g, ' ').trim())
@@ -33,8 +41,6 @@ const firstLine = (text) => (text || '')
 const toChapter = (item, start, index) => ({
   height: item.height,
   id: `chapter-${index}`,
-  image: item.image,
-  number: item.number,
   src: item.src,
   start,
   text: item.alt,
@@ -42,10 +48,10 @@ const toChapter = (item, start, index) => ({
 });
 
 // The recording has no chapters of its own: each slide shown and each screen
-// sharing is one (`items`: storage.slides, from slides.json). Slides shown
-// only for a moment are paging: that time goes to the slide it leads to, and
-// what is then the same slide twice in a row is one chapter.
-// [{ id, start, end, src, image, number, text, width, height }]
+// sharing is one, as in the classic player's thumbnails. Slides shown only for
+// a moment are paging: that time goes to the slide it leads to, and what is
+// then the same slide twice in a row is one chapter.
+// [{ id, start, end, src, text, width, height }]
 const buildChapters = (items, duration) => {
   const chapters = [];
   let paging = null;
@@ -105,20 +111,19 @@ const formatLength = (intl, seconds) => {
 
 const Thumbnail = ({ chapter }) => {
   if (chapter.src === ID.SCREENSHARE) return <Icon name="screenshare" size={28} />;
-  // A slide the server had no picture of
-  if (!chapter.image) return <Icon name="slides" size={28} />;
 
   // The size before it loads, so lazy loading knows which rows are visible
   const size = chapter.width > 0 && chapter.height > 0
     ? { height: chapter.height, width: chapter.width }
     : {};
 
-  return <img alt="" loading="lazy" src={buildFileURL(chapter.image)} {...size} />;
+  // The slides' pictures are the presentation format's
+  return <img alt="" loading="lazy" src={buildPresentationFileURL(chapter.src)} {...size} />;
 };
 
 const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {
   const screenshare = chapter.src === ID.SCREENSHARE;
-  const number = chapter.number > 0 ? chapter.number : null;
+  const number = slideNumber(chapter.src);
   const text = firstLine(chapter.text);
   const slide = number ? intl.formatMessage(intlMessages.slide, { number }) : null;
 
@@ -141,7 +146,7 @@ const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {
         onClick={() => seekTo(chapter.start)}
         type="button"
       >
-        <span className={cx('studio-chapter-thumb', { screenshare: screenshare || !chapter.image })}>
+        <span className={cx('studio-chapter-thumb', { screenshare })}>
           <Thumbnail chapter={chapter} />
           <span aria-hidden="true" className="studio-chapter-play">
             <Icon name="play" size={16} />
@@ -166,7 +171,11 @@ const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {
 // the current one is marked, with how far into it the playback is
 const Chapters = ({ duration, time }) => {
   const intl = useIntl();
-  const chapters = useMemo(() => buildChapters(storage.slides || [], duration), [duration]);
+  const items = useMemo(
+    () => buildThumbnailItems(storage.thumbnails || [], storage.layoutSwap, storage.screenshare),
+    [],
+  );
+  const chapters = useMemo(() => buildChapters(items, duration), [items, duration]);
   const currentIndex = findChapterIndex(chapters, time);
   const current = chapters[currentIndex];
   const { listProps } = useFollow(current ? current.id : null);

@@ -1,5 +1,5 @@
 import { parseFromString } from './data/xml2json';
-import { files as config } from 'config';
+import { files, presentation } from 'config';
 import { getFileType, caseInsensitiveReducer } from './data';
 import {
   hasProperty,
@@ -11,6 +11,10 @@ import {
   SHAPES,
 } from './constants';
 import logger from './logger';
+
+// Every file the player reads, by what it holds: the video format's and the
+// presentation format's
+const config = { ...presentation, ...files };
 
 const convertToArray = (object) => {
   if (Array.isArray(object)) {
@@ -103,31 +107,6 @@ const buildPolls = result => {
   });
 
   return data;
-};
-
-// slides.json: what the presentation area showed, in order, each slide from
-// when it came up, and screen sharing (the server's post_publish
-// studio_content.rb). `src` tells one from another: a slide's picture, or
-// its presentation and number where it has none
-const buildShownSlides = result => {
-  if (!Array.isArray(result)) return [];
-
-  return result
-    .filter(item => item && Number.isFinite(item.time) && (item.type === 'slide' || item.type === ID.SCREENSHARE))
-    .map((item, index) => {
-      if (item.type === ID.SCREENSHARE) return { id: index + 1, src: ID.SCREENSHARE, timestamp: item.time };
-
-      return {
-        alt: typeof item.title === 'string' ? item.title : '',
-        height: item.height,
-        id: index + 1,
-        image: typeof item.image === 'string' ? item.image : null,
-        number: item.slide,
-        src: typeof item.image === 'string' ? item.image : `slide-${item.presentation}-${item.slide}`,
-        timestamp: item.time,
-        width: item.width,
-      };
-    });
 };
 
 const buildVideos = result => {
@@ -564,9 +543,6 @@ const build = (filename, value) => {
           break;
         case config.polls:
           data = buildPolls(value);
-          break;
-        case config.slides:
-          data = buildShownSlides(value);
           break;
         case config.videos:
           data = buildVideos(value);

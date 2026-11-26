@@ -32,6 +32,19 @@ const buildFileURL = (file, recordId = null) => {
   return `${rootUrl}/${fileUrl}`;
 };
 
+// A file of the presentation format (/presentation/<record id>/): what the
+// video format does not publish (config.js, `presentation`)
+const buildPresentationFileURL = (file, recordId = null) => {
+  if (!ROUTER) return file;
+
+  const mediaPath = getMediaPath();
+  const id = recordId ? recordId : storage.metadata.id;
+  let fileUrl = `${id}/${file}`;
+  if (mediaPath) fileUrl = `${mediaPath}/${fileUrl}`;
+
+  return `/presentation/${fileUrl}`;
+};
+
 const getAvatarStyle = name => {
   const index = hash(name) % NUMBERS.length;
 
@@ -199,6 +212,7 @@ const caseInsensitiveReducer = (acc, item) => {
 
 export {
   buildFileURL,
+  buildPresentationFileURL,
   getAvatarStyle,
   getBar,
   getPads,

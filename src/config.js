@@ -16,19 +16,29 @@ const date = { enabled: true };
 
 // The recording is the "video" format's (/playback/video/<record id>/): its
 // MP4 (or M4V), metadata, captions and chat (video.xml, the same
-// <chattimeline> entries as the presentation format's slides_new.xml), and
-// what the server's post_publish studio_content.rb puts there: the shared
-// notes (notes.html), the polls (polls.json) and what the presentation area
-// showed (slides.json). A recording without one of these has none of it. The
+// <chattimeline> entries as the presentation format's slides_new.xml). The
 // JSON files next to them (layout.json, talking.json, timeline.json,
 // participants.json) are optional and fetched where they are used
 const files = {
   captions: 'captions.json',
   chat: 'video.xml',
   metadata: 'metadata.xml',
+};
+
+// What the video format does not publish, read from the presentation
+// format's folder (/presentation/<record id>/) as the classic player read
+// it: the shared notes, the polls, and for the chapters and the timeline the
+// slides and screen sharing shown (shapes.svg, with the slides' text, the
+// screen sharing and the layout swaps). All optional: on a server that does
+// not run the presentation format, the recording has no notes, polls or
+// chapters
+const presentation = {
+  alternates: 'presentation_text.json',
+  layout: 'layout.xml',
   notes: 'notes.html',
   polls: 'polls.json',
-  slides: 'slides.json',
+  screenshare: 'deskshare.xml',
+  shapes: 'shapes.svg',
 };
 
 const locale = { default: 'en' };
@@ -80,6 +90,7 @@ export {
   files,
   locale,
   player,
+  presentation,
   search,
   shortcuts,
   styles,

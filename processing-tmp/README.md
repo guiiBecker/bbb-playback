@@ -6,8 +6,8 @@ playback (`src/components/studio/`) needs, until they are proposed to
 
 ## What the playback reads
 
-Only BBB's **`video` recording format** runs. The `presentation` format is not
-needed. The playback reads one folder, `/playback/video/<record id>/`:
+The playback plays BBB's **`video` recording format** and reads its folder,
+`/playback/video/<record id>/`:
 
 | File | Made by | Used for |
 |---|---|---|
@@ -19,9 +19,6 @@ needed. The playback reads one folder, `/playback/video/<record id>/`:
 | `talking.json` | `post_publish/studio_data.rb` | who is talking |
 | `timeline.json` | `post_publish/studio_data.rb` | raised hands and reactions on the timeline |
 | `participants.json` | `post_publish/participants.rb` | the participants list |
-| `notes.html` | `post_publish/studio_content.rb` | the Notes tab |
-| `polls.json` | `post_publish/studio_content.rb` | the Polls app of the Apps tab, and its markers on the timeline |
-| `slides.json` + `slides/` | `post_publish/studio_content.rb` | the Chapters tab, and the slide and screen sharing markers and segments of the timeline |
 
 **The video.** The playback looks for `video-0.m4v`, then `video-1.m4v`, then
 `video-0.mp4`. It plays the first one found and the download offers that same
@@ -31,34 +28,23 @@ Both hold the same H.264/AAC. Without any of them the recording shows the
 "not found" error. There is no WebM and no `presentation` format fallback.
 
 **The tabs.** All the tabs are always shown. When the recording has nothing
-for one, it says so. Notes, Chapters and Apps (polls) came from the
-`presentation` format, which is not read anymore:
-`post_publish/studio_content.rb` puts their data next to the video. On a
-server without that script, or for a recording published before it, these
-tabs are empty.
+for one, it says so. Notes, Chapters and Apps (polls) are not in the `video`
+format: the playback reads them from the `presentation` format's folder,
+`/presentation/<record id>/`, as the classic player did (`notes.html`,
+`polls.json`, and for the chapters and the timeline `shapes.svg`,
+`presentation_text.json`, `deskshare.xml` and `layout.xml`). Nothing has to be
+installed for that. On a server that does not run the `presentation` format
+these tabs are empty, and the rest plays as usual.
 
-Every JSON and `notes.html` are optional. If one is missing, its feature is
-just not shown.
+Every JSON is optional. If one is missing, its feature is just not shown.
 
 ## What is here
 
 - `post_publish/studio_data.rb`: writes `talking.json` and `timeline.json`
   from the raw `events.xml`.
 - `post_publish/participants.rb`: writes `participants.json`.
-- `post_publish/studio_content.rb`: publishes what the meeting had besides
-  its video, from the raw recording:
-  - `notes.html`, a copy of the shared notes' export (`notes/notes.html`);
-  - `polls.json`, the polls whose results were published while recording, in
-    the `presentation` format's shape;
-  - `slides.json`, the slides and screen sharing the presentation area showed
-    (`events.xml`), with each slide's first line of text and its thumbnail,
-    copied to `slides/`.
 
-  A meeting without notes, polls or slides gets no file for them. Everyone
-  who can open the recording can read these files, as with the `presentation`
-  format's.
-
-All run as post_publish scripts of the `video` format (`-f video`) and write
+Both run as post_publish scripts of the `video` format (`-f video`) and write
 into its folder. Copy them to
 `/usr/local/bigbluebutton/core/scripts/post_publish/` on a BBB server, or run
 them by hand on a recording that is already published:
@@ -67,7 +53,6 @@ them by hand on a recording that is already published:
 cd /usr/local/bigbluebutton/core/scripts/post_publish
 sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f video
 sudo -u bigbluebutton ruby participants.rb -m <record id> -f video
-sudo -u bigbluebutton ruby studio_content.rb -m <record id> -f video
 ```
 
 The raw files must still be on the server.
@@ -93,7 +78,8 @@ files use the same timeline.
 
 ## Processing steps
 
-With only the `video` format, `bigbluebutton.yml` would have:
+With only the `video` format (no notes, chapters or polls in the playback,
+see above), `bigbluebutton.yml` would have:
 
 ```yaml
 steps:
@@ -118,19 +104,6 @@ joined, and anything outside them is dropped.
 
 // participants.json, in the order people first joined
 [{ "name": "Ana", "role": "MODERATOR" }, { "name": "Bia", "role": "VIEWER" }]
-
-// polls.json, in time order: when the results were published
-[{ "timestamp": 23, "type": "YN", "question": "Ready?",
-   "answers": [{ "id": 0, "key": "Yes", "numVotes": 3 }, { "id": 1, "key": "No", "numVotes": 1 }],
-   "respondents": 5, "responders": 4, "showCorrectAnswer": false, "isQuiz": false }]
-
-// slides.json, in time order: each slide from when it came up, and screen
-// sharing. A change made while the recording was paused shows from where it
-// goes on. "title", "image" and its size are left out when the server has
-// no text or thumbnail for the slide
-[{ "time": 0, "type": "slide", "presentation": "<presentation id>", "slide": 1,
-   "title": "Welcome", "image": "slides/<presentation id>/thumb-1.png", "width": 150, "height": 85 },
- { "time": 28, "type": "screenshare" }]
 
 // layout.json (video format): sizes in video pixels
 { "width": 1920, "height": 1080,

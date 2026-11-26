@@ -1,4 +1,4 @@
-import { files } from 'config';
+import { files, presentation } from 'config';
 import {
   addAlternatesToThumbnails,
   build,
@@ -10,6 +10,7 @@ import {
 } from 'utils/constants';
 import {
   buildFileURL,
+  buildPresentationFileURL,
   getFileType,
 } from 'utils/data';
 import {
@@ -42,7 +43,8 @@ const hasFetched = () => {
 // enough: the media probe is stored in the same object, so the count could
 // reach the number of files with one of them still missing
 const hasLoaded = () => {
-  const filesLoaded = Object.keys(files).every(data => Object.hasOwn(DATA, data));
+  const filesLoaded = [...Object.keys(files), ...Object.keys(presentation)]
+    .every(data => Object.hasOwn(DATA, data));
   const mediaLoaded = Object.hasOwn(DATA, ID.MEDIA);
 
   if (filesLoaded && mediaLoaded) {
@@ -90,6 +92,34 @@ const fetchFile = (data, recordId, onUpdate, onLoaded, onError) => {
   }).catch(error => onError(ERROR.NOT_FOUND));
 };
 
+// A file of the presentation format (config.js, `presentation`): the notes,
+// the polls and what the chapters and the timeline are made of, which the
+// video format does not publish. Optional: a missing or broken file leaves
+// its part of the player empty and is never an error, so a recording of a
+// server without the presentation format still plays
+const fetchPresentationFile = (data, recordId, onUpdate, onLoaded) => {
+  const file = presentation[data];
+  const store = content => {
+    DATA[data] = content;
+    onUpdate(data);
+    if (hasLoaded()) onLoaded();
+  };
+
+  fetch(buildPresentationFileURL(file, recordId))
+    .then(response => {
+      if (!response.ok) return null;
+
+      return getFileType(file) === 'json' ? response.json() : response.text();
+    })
+    .then(value => build(file, value))
+    .then(store)
+    .catch(error => {
+      logger.warn(ID.STORAGE, file, error);
+      // What the builder gives for a missing file
+      build(file, null).then(store).catch(() => store(null));
+    });
+};
+
 // The recording's video is the "video" format's, as M4V or MP4 (the same
 // H.264/AAC), and only it: without it the recording cannot be played. The
 // M4V comes first; the MP4 is played when there is no M4V. Only a
@@ -132,6 +162,10 @@ const storage = {
 
     for (const data in files) {
       fetchFile(data, recordId, onUpdate, onLoaded, onError);
+    }
+
+    for (const data in presentation) {
+      fetchPresentationFile(data, recordId, onUpdate, onLoaded);
     }
 
     fetchMedia(recordId, onUpdate, onLoaded, onError);
@@ -178,12 +212,6 @@ const storage = {
   get polls() {
     return DATA[ID.POLLS];
   },
-  // What the presentation area showed, in order (slides.json):
-  // [{ timestamp, src, alt, image, number, width, height }], `src` being
-  // 'screenshare' for screen sharing
-  get slides() {
-    return DATA[ID.SLIDES] || [];
-  },
   get videos() {
     return DATA[ID.VIDEOS];
   },
@@ -219,10 +247,14 @@ const storage = {
   get screenshare() {
     return DATA[ID.SCREENSHARE];
   },
-  // The presentation format's data: empty, the player reads the video
-  // format's files only
+  // From the presentation format's shapes.svg: the slides and screen sharing
+  // shown, for the chapters and the timeline. Empty where the server does
+  // not publish that format
   get shapes() {
     return DATA[ID.SHAPES] || {};
+  },
+  get slides() {
+    return this.shapes[ID.SLIDES] || [];
   },
   get canvases() {
     return this.shapes[ID.CANVASES] || [];
@@ -230,7 +262,7 @@ const storage = {
   get thumbnails() {
     if (!hasProperty(DATA, ID.THUMBNAILS)) {
       const thumbnails = this.shapes[ID.THUMBNAILS];
-      DATA[ID.THUMBNAILS] = thumbnails ? addAlternatesToThumbnails(thumbnails, this.alternates) : [];
+      DATA[ID.THUMBNAILS] = thumbnails ? addAlternatesToThumbnails(thumbnails, this.alternates || []) : [];
     }
 
     return DATA[ID.THUMBNAILS];

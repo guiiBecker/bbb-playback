@@ -19,16 +19,30 @@ const loadStorage = () => {
   return storage;
 };
 
-// fetch mock where each response is released by hand, in any order
-const deferredFetch = () => {
+// fetch mock where each response is released by hand, in any order. The
+// presentation format's files (/presentation/…), all optional, are answered
+// at once: with what the test has for them (`published`, by file name), else
+// as missing
+const deferredFetch = (published = {}) => {
   const pending = {};
-  global.fetch = jest.fn((url, options = {}) => new Promise((resolve, reject) => {
-    const key = `${options.method || 'GET'} ${url.split('/').slice(-2).join('/')}`;
-    pending[key] = { resolve, reject };
-  }));
+  global.fetch = jest.fn((url, options = {}) => {
+    if (url.startsWith('/presentation/')) {
+      const answer = published[url.split('/').pop()] || MISSING;
+
+      return answer instanceof Error ? Promise.reject(answer) : Promise.resolve(answer);
+    }
+
+    return new Promise((resolve, reject) => {
+      const key = `${options.method || 'GET'} ${url.split('/').slice(-2).join('/')}`;
+      pending[key] = { resolve, reject };
+    });
+  });
 
   return pending;
 };
+
+const text = (value) => ({ ok: true, status: 200, text: () => Promise.resolve(value) });
+const json = (value) => ({ ok: true, status: 200, json: () => Promise.resolve(value) });
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -81,23 +95,83 @@ describe('storage', () => {
     expect(storage.media).toEqual({ type: 'video/mp4', url: '/playback/video/rec/video-0.mp4' });
   });
 
-  it('reads only the video format\'s files: no presentation format, no WebM', async () => {
+  it('reads the video format\'s files, and no WebM', async () => {
     const pending = deferredFetch();
     const storage = loadStorage();
     storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
 
-    expect(Object.keys(pending).sort()).toEqual([
-      'GET rec/captions.json',
-      'GET rec/metadata.xml',
-      'GET rec/notes.html',
-      'GET rec/polls.json',
-      'GET rec/slides.json',
-      'GET rec/video.xml',
-      M4V,
-      M4V_SECOND,
-      MP4,
-    ].sort());
-    expect(global.fetch.mock.calls.every(([url]) => url.startsWith('/playback/video/rec/'))).toBe(true);
+    expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
+  });
+
+  it('reads the notes, the polls and the slides from the presentation format\'s folder', async () => {
+    const pending = deferredFetch({
+      'notes.html': text('<html>\n<body>\n<p>Agenda</p>\n</body>\n</html>'),
+      'polls.json': json([
+        { answers: [{ id: 0, key: 'Yes', numVotes: 3 }], question: 'Ready?', timestamp: 23, type: 'YN' },
+      ]),
+      'presentation_text.json': json({ p: { 'slide-1': 'Welcome\nAgenda' } }),
+      'shapes.svg': text(`<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <image id="image1" class="slide" in="0.0" out="40.0" xlink:href="presentation/p/slide-1.png" width="1600" height="900"/>
+  <image id="image2" class="slide" in="40.0" out="60.0" xlink:href="presentation/deskshare.png" width="1280" height="720"/>
+</svg>`),
+    });
+    const storage = loadStorage();
+    const onError = jest.fn();
+    const onLoaded = jest.fn();
+    storage.fetch('rec', jest.fn(), onLoaded, onError);
+
+    const urls = global.fetch.mock.calls.map(([url]) => url).filter(url => url.startsWith('/presentation/'));
+    expect(urls.sort()).toEqual([
+      '/presentation/rec/deskshare.xml',
+      '/presentation/rec/layout.xml',
+      '/presentation/rec/notes.html',
+      '/presentation/rec/polls.json',
+      '/presentation/rec/presentation_text.json',
+      '/presentation/rec/shapes.svg',
+    ]);
+
+    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
+    await flush();
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(onLoaded).toHaveBeenCalledTimes(1);
+    expect(storage.notes).toContain('<p>Agenda</p>');
+    expect(storage.polls.map(({ question, timestamp }) => [question, timestamp])).toEqual([['Ready?', 23]]);
+    expect(storage.thumbnails.map(({ alt, src, timestamp }) => [src, timestamp, alt])).toEqual([
+      ['presentation/p/thumbnails/thumb-1.png', 0, 'Welcome\nAgenda'],
+      ['screenshare', 40, ''],
+    ]);
+  });
+
+  it('plays a recording without the presentation format, with no notes, polls or slides', async () => {
+    const pending = deferredFetch({
+      // Not there, not reachable, or a server's page for an unknown path
+      'notes.html': MISSING,
+      'polls.json': { ok: true, status: 200, json: () => Promise.reject(new SyntaxError('Unexpected token <')) },
+      'shapes.svg': new TypeError('Failed to fetch'),
+      'deskshare.xml': text('<html><body>Not found</body></html>'),
+    });
+    const storage = loadStorage();
+    const onError = jest.fn();
+    const onLoaded = jest.fn();
+    storage.fetch('rec', jest.fn(), onLoaded, onError);
+
+    Object.values(files).forEach(file => pending[fileKey(file)].resolve(MISSING));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
+    await flush();
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(onLoaded).toHaveBeenCalledTimes(1);
+    expect(storage.notes).toBe('');
+    expect(storage.polls).toEqual([]);
+    expect(storage.thumbnails).toEqual([]);
+    expect(storage.slides).toEqual([]);
   });
 
   it('plays the MP4 when there is no M4V', async () => {
@@ -187,62 +261,5 @@ describe('storage', () => {
 
     expect(storage.slides).toEqual([]);
     expect(storage.thumbnails).toEqual([]);
-  });
-
-  const json = (value) => ({ ok: true, status: 200, json: () => Promise.resolve(value) });
-
-  it('reads the notes, the polls and the slides published next to the video', async () => {
-    const pending = deferredFetch();
-    const storage = loadStorage();
-    const onLoaded = jest.fn();
-    storage.fetch('rec', jest.fn(), onLoaded, jest.fn());
-
-    ['captions.json', 'metadata.xml', 'video.xml'].forEach(file => pending[fileKey(file)].resolve(MISSING));
-    pending[fileKey('notes.html')].resolve({
-      ok: true,
-      status: 200,
-      text: () => Promise.resolve('<html>\n<body>\n<p>Agenda</p>\n</body>\n</html>'),
-    });
-    pending[fileKey('polls.json')].resolve(json([
-      { answers: [{ id: 0, key: 'Yes', numVotes: 3 }], question: 'Ready?', timestamp: 23, type: 'YN' },
-    ]));
-    pending[fileKey('slides.json')].resolve(json([
-      { image: 'slides/p/thumb-1.png', presentation: 'p', slide: 1, time: 0, title: 'Welcome', type: 'slide' },
-      { time: 28, type: 'screenshare' },
-    ]));
-    pending[MP4].resolve(VIDEO);
-    pending[M4V].resolve(MISSING);
-    pending[M4V_SECOND].resolve(MISSING);
-    await flush();
-
-    expect(onLoaded).toHaveBeenCalledTimes(1);
-    expect(storage.notes).toContain('<p>Agenda</p>');
-    expect(storage.polls.map(({ question, timestamp }) => [question, timestamp])).toEqual([['Ready?', 23]]);
-    expect(storage.slides.map(({ src, timestamp }) => [src, timestamp])).toEqual([
-      ['slides/p/thumb-1.png', 0],
-      ['screenshare', 28],
-    ]);
-  });
-
-  it('plays a recording whose optional JSON is not JSON, as without it', async () => {
-    const pending = deferredFetch();
-    const storage = loadStorage();
-    const onError = jest.fn();
-    const onLoaded = jest.fn();
-    storage.fetch('rec', jest.fn(), onLoaded, onError);
-
-    // A server's page for an unknown path, answered with 200
-    const page = { ok: true, status: 200, json: () => Promise.reject(new SyntaxError('Unexpected token <')) };
-    ['metadata.xml', 'notes.html', 'video.xml'].forEach(file => pending[fileKey(file)].resolve(MISSING));
-    ['captions.json', 'polls.json', 'slides.json'].forEach(file => pending[fileKey(file)].resolve(page));
-    pending[MP4].resolve(VIDEO);
-    pending[M4V].resolve(MISSING);
-    pending[M4V_SECOND].resolve(MISSING);
-    await flush();
-
-    expect(onError).not.toHaveBeenCalled();
-    expect(onLoaded).toHaveBeenCalledTimes(1);
-    expect(storage.polls).toEqual([]);
-    expect(storage.slides).toEqual([]);
   });
 });

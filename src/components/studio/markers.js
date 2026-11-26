@@ -13,11 +13,10 @@ const MARKER_BUCKET = 0.03;
 // changes is one segment, not a row of slivers
 const SEGMENT_MIN = 0.02;
 
-// Everything with a time in the published recording: chat (video.xml),
-// slides and screen sharing (slides.json), polls (polls.json), external
-// videos (external_videos.json, not published with the video format), and
-// raised hands and reactions (`timeline`: timeline.json, from the server's
-// post_publish studio_data.rb).
+// Everything with a time in the published recording: chat (slides_new.xml),
+// slides and screen sharing (shapes.svg, deskshare.xml), polls (polls.json),
+// external videos (external_videos.json), and raised hands and reactions
+// (`timeline`: timeline.json, from the server's post_publish studio_data.rb).
 // Of the chat only the moderators' messages: all of it would bury the
 // timeline, and the chat tab lists the rest
 const collectEvents = (duration, timeline) => {
@@ -33,21 +32,18 @@ const collectEvents = (duration, timeline) => {
   // A stop with no start (the recording began with the video already
   // stopped) publishes an entry with no URL: not a video
   (storage.videos || []).filter((video) => video.url).forEach((video) => add('video', video.timestamp));
+  (storage.screenshare || []).forEach((share) => add('screenshare', share.timestamp));
   (Array.isArray(timeline) ? timeline : [])
     .filter((moment) => moment && (moment.type === 'hand' || moment.type === 'reaction'))
     .forEach((moment) => add(moment.type, moment.time));
 
-  // What the presentation area showed, in order: a screen sharing when it
-  // begins, a slide when it comes up. The first slide is the start, not a
-  // change
+  // A slide change is a new image in shapes.svg; screen sharing shows up there
+  // too, already counted above. The first image is the start, not a change
   let previous = null;
-  (storage.slides || []).forEach((slide, index) => {
-    if (slide.src === ID.SCREENSHARE) {
-      if (previous !== ID.SCREENSHARE) add('screenshare', slide.timestamp);
-    } else if (index > 0 && slide.src !== previous) {
-      add('slide', slide.timestamp);
-    }
-    previous = slide.src;
+  (storage.thumbnails || []).forEach((thumbnail, index) => {
+    const changed = thumbnail.src !== ID.SCREENSHARE && thumbnail.src !== previous;
+    if (index > 0 && changed) add('slide', thumbnail.timestamp);
+    previous = thumbnail.src;
   });
 
   return events.sort((a, b) => a.time - b.time);
