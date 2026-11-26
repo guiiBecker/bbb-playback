@@ -135,3 +135,11 @@ it('still reads the presentation format\'s metadata.xml', async () => {
 
   expect(metadata).toEqual({ end: 2, id: 'abc-1', name: 'Room', participants: 3, start: 1 });
 });
+
+it('reads polls.json, also when it is not a list or a poll has no answers', async () => {
+  expect(await build('polls.json', null)).toEqual([]);
+  expect(await build('polls.json', { timestamp: 1 })).toEqual([]);
+  expect(await build('polls.json', [{ question: 'Ready?', timestamp: 23 }])).toEqual([
+    { answers: [], question: 'Ready?', timestamp: 23 },
+  ]);
+});

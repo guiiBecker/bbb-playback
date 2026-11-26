@@ -1,5 +1,5 @@
 import { parseFromString } from './data/xml2json';
-import { files as config } from 'config';
+import { files, presentation } from 'config';
 import { getFileType, caseInsensitiveReducer } from './data';
 import {
   hasProperty,
@@ -11,6 +11,10 @@ import {
   SHAPES,
 } from './constants';
 import logger from './logger';
+
+// Every file the player reads, by what it holds: the video format's and the
+// presentation format's
+const config = { ...presentation, ...files };
 
 const convertToArray = (object) => {
   if (Array.isArray(object)) {
@@ -92,10 +96,10 @@ const buildCaptions = result => {
 
 // TODO
 const buildPolls = result => {
-  if (!result) return [];
+  if (!Array.isArray(result)) return [];
 
-  const data = result.map(r => {
-    const answers = r.answers.reduce(caseInsensitiveReducer, []);
+  const data = result.filter(Boolean).map(r => {
+    const answers = (Array.isArray(r.answers) ? r.answers : []).reduce(caseInsensitiveReducer, []);
     return {
       ...r,
       answers,

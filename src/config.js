@@ -28,6 +28,23 @@ const files = {
   notes: 'notes.html',
 };
 
+// What the video format does not publish, read from the presentation
+// format's folder (/presentation/<record id>/) as the classic player read
+// it, when that folder is there: the polls, and for the chapters and the
+// timeline the slides and screen sharing shown (shapes.svg, with the slides'
+// text, the screen sharing and the layout swaps); and its shared notes, only
+// for a recording whose video folder has none (presentationNotes). All
+// optional: on a server that does not run the presentation format, the
+// recording has no polls or chapters
+const presentation = {
+  alternates: 'presentation_text.json',
+  layout: 'layout.xml',
+  presentationNotes: 'notes.html',
+  polls: 'polls.json',
+  screenshare: 'deskshare.xml',
+  shapes: 'shapes.svg',
+};
+
 const locale = { default: 'en' };
 
 const player = {
@@ -77,6 +94,7 @@ export {
   files,
   locale,
   player,
+  presentation,
   search,
   shortcuts,
   styles,

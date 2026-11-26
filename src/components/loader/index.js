@@ -54,6 +54,12 @@ const Loader = ({ match }) => {
 
   const onLoaded = () => {
     logger.debug('loader', 'loaded');
+    // Every file is optional but the metadata: without it (its file missing
+    // or not a recording's) there is no recording to show
+    if (!storage.metadata || !storage.metadata.id) {
+      onError(ERROR.NOT_FOUND);
+      return;
+    }
     setTimeout(() => setLoaded(true), FEEDBACK);
   };
 

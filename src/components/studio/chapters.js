@@ -3,7 +3,7 @@ import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import { buildThumbnailItems } from 'components/thumbnails/utils';
 import { ID } from 'utils/constants';
-import { buildFileURL } from 'utils/data';
+import { buildPresentationFileURL } from 'utils/data';
 import storage from 'utils/data/storage';
 import { useFollow } from './follow';
 import Icon from './icon';
@@ -109,6 +109,24 @@ const formatLength = (intl, seconds) => {
   return rest ? `${unit(hours, 'hour')} ${unit(rest, 'minute')}` : unit(hours, 'hour');
 };
 
+// What a chapter is called: the slide's first line of text, else its
+// number; "Screen sharing"; "Chapter 2" when the recording says nothing more
+const chapterTitle = (chapter, index, intl) => {
+  if (chapter.src === ID.SCREENSHARE) return intl.formatMessage(intlMessages.screenshare);
+
+  const number = slideNumber(chapter.src);
+
+  return firstLine(chapter.text)
+    || (number ? intl.formatMessage(intlMessages.slide, { number }) : null)
+    || intl.formatMessage(intlMessages.chapter, { number: index + 1 });
+};
+
+// The recording's chapters, from what the presentation area showed
+const recordingChapters = (duration) => buildChapters(
+  buildThumbnailItems(storage.thumbnails || [], storage.layoutSwap, storage.screenshare),
+  duration,
+);
+
 const Thumbnail = ({ chapter }) => {
   if (chapter.src === ID.SCREENSHARE) return <Icon name="screenshare" size={28} />;
 
@@ -117,7 +135,8 @@ const Thumbnail = ({ chapter }) => {
     ? { height: chapter.height, width: chapter.width }
     : {};
 
-  return <img alt="" loading="lazy" src={buildFileURL(chapter.src)} {...size} />;
+  // The slides' pictures are the presentation format's
+  return <img alt="" loading="lazy" src={buildPresentationFileURL(chapter.src)} {...size} />;
 };
 
 const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {
@@ -125,10 +144,7 @@ const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {
   const number = slideNumber(chapter.src);
   const text = firstLine(chapter.text);
   const slide = number ? intl.formatMessage(intlMessages.slide, { number }) : null;
-
-  let title = text;
-  if (screenshare) title = intl.formatMessage(intlMessages.screenshare);
-  else if (!title) title = slide || intl.formatMessage(intlMessages.chapter, { number: index + 1 });
+  const title = chapterTitle(chapter, index, intl);
 
   const length = formatLength(intl, chapter.end - chapter.start);
   const meta = !screenshare && text && slide ? `${slide} · ${length}` : length;
@@ -170,11 +186,7 @@ const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {
 // the current one is marked, with how far into it the playback is
 const Chapters = ({ duration, time }) => {
   const intl = useIntl();
-  const items = useMemo(
-    () => buildThumbnailItems(storage.thumbnails || [], storage.layoutSwap, storage.screenshare),
-    [],
-  );
-  const chapters = useMemo(() => buildChapters(items, duration), [items, duration]);
+  const chapters = useMemo(() => recordingChapters(duration), [duration]);
   const currentIndex = findChapterIndex(chapters, time);
   const current = chapters[currentIndex];
   const { listProps } = useFollow(current ? current.id : null);
@@ -207,6 +219,6 @@ const Chapters = ({ duration, time }) => {
   );
 };
 
-export { buildChapters };
+export { buildChapters, chapterTitle, recordingChapters };
 
 export default Chapters;

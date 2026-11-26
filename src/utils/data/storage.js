@@ -1,4 +1,4 @@
-import { files } from 'config';
+import { files, presentation } from 'config';
 import {
   addAlternatesToThumbnails,
   build,
@@ -10,6 +10,7 @@ import {
 } from 'utils/constants';
 import {
   buildFileURL,
+  buildPresentationFileURL,
   getFileType,
 } from 'utils/data';
 import {
@@ -42,7 +43,8 @@ const hasFetched = () => {
 // enough: the media probe is stored in the same object, so the count could
 // reach the number of files with one of them still missing
 const hasLoaded = () => {
-  const filesLoaded = Object.keys(files).every(data => Object.hasOwn(DATA, data));
+  const filesLoaded = [...Object.keys(files), ...Object.keys(presentation)]
+    .every(data => Object.hasOwn(DATA, data));
   const mediaLoaded = Object.hasOwn(DATA, ID.MEDIA);
 
   if (filesLoaded && mediaLoaded) {
@@ -64,7 +66,8 @@ const fetchFile = (data, recordId, onUpdate, onLoaded, onError) => {
       const fileType = getFileType(file);
       switch (fileType) {
         case 'json':
-          return response.json();
+          // Not JSON (a server's page for an unknown path): as if missing
+          return response.json().catch(() => null);
         case 'html':
           return response.text();
         case 'svg':
@@ -87,6 +90,34 @@ const fetchFile = (data, recordId, onUpdate, onLoaded, onError) => {
       if (hasLoaded()) onLoaded();
     }).catch(error => onError(ERROR.BAD_REQUEST));
   }).catch(error => onError(ERROR.NOT_FOUND));
+};
+
+// A file of the presentation format (config.js, `presentation`): the notes,
+// the polls and what the chapters and the timeline are made of, which the
+// video format does not publish. Optional: a missing or broken file leaves
+// its part of the player empty and is never an error, so a recording of a
+// server without the presentation format still plays
+const fetchPresentationFile = (data, recordId, onUpdate, onLoaded) => {
+  const file = presentation[data];
+  const store = content => {
+    DATA[data] = content;
+    onUpdate(data);
+    if (hasLoaded()) onLoaded();
+  };
+
+  fetch(buildPresentationFileURL(file, recordId))
+    .then(response => {
+      if (!response.ok) return null;
+
+      return getFileType(file) === 'json' ? response.json() : response.text();
+    })
+    .then(value => build(file, value))
+    .then(store)
+    .catch(error => {
+      logger.warn(ID.STORAGE, file, error);
+      // What the builder gives for a missing file
+      build(file, null).then(store).catch(() => store(null));
+    });
 };
 
 // The recording's video is the "video" format's, as M4V or MP4 (the same
@@ -131,6 +162,10 @@ const storage = {
 
     for (const data in files) {
       fetchFile(data, recordId, onUpdate, onLoaded, onError);
+    }
+
+    for (const data in presentation) {
+      fetchPresentationFile(data, recordId, onUpdate, onLoaded);
     }
 
     fetchMedia(recordId, onUpdate, onLoaded, onError);
@@ -202,8 +237,10 @@ const storage = {
   get metadata() {
     return DATA[ID.METADATA];
   },
+  // The video format's folder first (notes.html, published by the
+  // post_publish step); the presentation format's when that one has none
   get notes() {
-    return DATA[ID.NOTES];
+    return DATA[ID.NOTES] || DATA.presentationNotes;
   },
   get panzooms() {
     const result = DATA[ID.PANZOOMS];
@@ -212,8 +249,9 @@ const storage = {
   get screenshare() {
     return DATA[ID.SCREENSHARE];
   },
-  // The presentation format's data: empty, the player reads the video
-  // format's files only
+  // From the presentation format's shapes.svg: the slides and screen sharing
+  // shown, for the chapters and the timeline. Empty where the server does
+  // not publish that format
   get shapes() {
     return DATA[ID.SHAPES] || {};
   },
@@ -226,7 +264,7 @@ const storage = {
   get thumbnails() {
     if (!hasProperty(DATA, ID.THUMBNAILS)) {
       const thumbnails = this.shapes[ID.THUMBNAILS];
-      DATA[ID.THUMBNAILS] = thumbnails ? addAlternatesToThumbnails(thumbnails, this.alternates) : [];
+      DATA[ID.THUMBNAILS] = thumbnails ? addAlternatesToThumbnails(thumbnails, this.alternates || []) : [];
     }
 
     return DATA[ID.THUMBNAILS];

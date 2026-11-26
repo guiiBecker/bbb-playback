@@ -8,8 +8,8 @@ Everything here is written on top of the **public** BigBlueButton code
 
 ## What the playback reads
 
-Only BBB's **`video` recording format** runs. The `presentation` format is not
-needed. The playback reads one folder, `/playback/video/<record id>/`:
+The playback plays BBB's **`video` recording format** and reads its folder,
+`/playback/video/<record id>/`:
 
 | File | Made by | Used for |
 |---|---|---|
@@ -28,12 +28,20 @@ needed. The playback reads one folder, `/playback/video/<record id>/`:
 file. The `video` format names each output `video-<its index in the preset>.<extension>`.
 BBB's own presets write `video-0.m4v`, so the playback plays a stock `video`
 format recording too, without the overlays. Without any of these files the
-recording shows the "not found" error. There is no WebM and no `presentation`
-format fallback.
+recording shows the "not found" error. There is no WebM, and the video never
+comes from the `presentation` format.
 
 **The tabs.** All the tabs are always shown. When the recording has nothing
-for one, it says so. Chapters and Apps (polls) came from the `presentation`
-format, so they stay empty for now.
+for one, it says so. The notes come from the `video` format's folder
+(`notes.html`, published by `post_publish/studio_data.rb`). What the `video`
+format does not have is read from the `presentation` format's folder,
+`/presentation/<record id>/`, when it is there, as the classic player did:
+the polls (`polls.json`), for the chapters and the timeline the slides and
+screen sharing (`shapes.svg`, `presentation_text.json`, `deskshare.xml`,
+`layout.xml`), and the notes of a recording whose `video` folder has none.
+Nothing has to be installed for that. On a server that does not run the
+`presentation` format, Chapters and Apps are empty, and the rest plays as
+usual.
 
 Every JSON is optional. If one is missing, its feature is just not shown.
 
@@ -96,7 +104,8 @@ The raw files must still be on the server.
 
 ## Processing steps
 
-With only the `video` format, `bigbluebutton.yml` would have:
+With only the `video` format (no notes, chapters or polls in the playback,
+see above), `bigbluebutton.yml` would have:
 
 ```yaml
 steps:

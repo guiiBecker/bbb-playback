@@ -1855,6 +1855,25 @@
   }
 }
 
+// While the download is prepared (download.js): the button fills from the
+// left, as far as the file has come
+.studio-download.busy {
+  cursor: progress;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    background-color: var(--studio-primary);
+    bottom: 0;
+    content: '';
+    height: 3px;
+    left: 0;
+    position: absolute;
+    transition: width .2s linear;
+    width: var(--studio-download-progress, 0%);
+  }
+}
+
 // The interface language (locale.js): a globe that opens the languages
 
 .studio-locale {
@@ -2147,9 +2166,9 @@
   }
 }
 
-// Captions over the presentation. The grid area of the content is their
-// containing block; stage.js moves them up to the bottom edge of the slide or
-// the screenshare
+// Captions over the video. The whole video's frame (.studio-master-frame) is
+// their containing block; stage.js moves them to the bottom edge of the
+// presentation's part of it. Without that they are at the bottom of the video
 
 .studio-captions {
   // Distance to the picture's edges, also used by stage.js
@@ -2159,9 +2178,6 @@
   bottom: var(--studio-captions-inset);
   display: flex;
   flex-direction: column;
-  // All four lines: an absolutely positioned item's `auto` lines would be the
-  // stage's padding edges instead
-  grid-area: 1 / 1 / 2 / 2;
   left: 50%;
   max-width: calc(100% - 2 * var(--studio-captions-inset));
   // As wide as the text: positioned from the middle, the shrink-to-fit width
@@ -2171,6 +2187,11 @@
   position: absolute;
   transform: translateX(-50%);
   z-index: 4;
+
+  // With the video's frame, when the webcams fold away
+  @media (prefers-reduced-motion: no-preference) {
+    transition: bottom .3s ease, left .3s ease, max-width .3s ease;
+  }
 
   span {
     // A neutral dark grey, so it reads over slides and webcams alike
