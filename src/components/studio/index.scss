@@ -584,8 +584,26 @@
   }
 }
 
+.studio-paragraph-head {
+  align-items: baseline;
+  display: flex;
+  gap: var(--studio-space-s);
+}
+
+// Who speaks, when it changes from the paragraph before
+.studio-paragraph-speaker {
+  color: var(--studio-text);
+  font-size: var(--studio-font-xs);
+  font-weight: var(--studio-weight-default);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .studio-paragraph-time {
   background: none;
+  flex-shrink: 0;
   border: none;
   border-radius: var(--studio-space-xs);
   color: var(--studio-muted);

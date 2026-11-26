@@ -32,9 +32,13 @@ const decode = (text) => text
   .replace(/&gt;/g, '>')
   .replace(/&amp;/g, '&');
 
-// WebVTT -> [{ start, end, text }]. The recording's files come from
+// WebVTT voice span: "<v Ana Lima>text", the speaker of the cue
+const VOICE = /^<v(?:\.[\w.-]+)?\s+([^>]+)>/;
+
+// WebVTT -> [{ start, end, text, speaker }]. The recording's files come from
 // record-and-playback's gen_webvtt: lines of up to 32 characters, one or two
-// per cue
+// per cue. A cue may say who speaks with a voice span; `speaker` is then that
+// name, else null
 const parseVtt = (content) => content
   .replace(/\r/g, '')
   .split(/\n{2,}/)
@@ -45,9 +49,13 @@ const parseVtt = (content) => content
 
     const [start, end] = lines[timing].split('-->').map((part) => parseCueTime(part.trim().split(/\s+/)[0]));
     // Keeps the cue's line breaks for the captions; the transcript joins them
-    const text = decode(lines.slice(timing + 1).map((line) => line.trim()).filter(Boolean).join('\n'));
+    const raw = lines.slice(timing + 1).map((line) => line.trim()).filter(Boolean).join('\n');
+    const voice = VOICE.exec(raw);
+    const text = decode(raw.replace(/<\/?v(?:[.\s][^>]*)?>/g, '').trim());
 
-    return text ? { end, start, text } : null;
+    return text ? {
+      end, speaker: voice ? decode(voice[1].trim()) : null, start, text,
+    } : null;
   })
   .filter(Boolean);
 
@@ -64,13 +72,14 @@ const buildParagraphs = (cues) => {
   const paragraphs = [];
   let current = null;
 
-  const open = (piece) => {
+  const open = (piece, speaker) => {
     current = {
       first: piece.index,
       id: `p${paragraphs.length}`,
       last: piece.index,
       length: 0,
       pieces: [],
+      speaker,
       start: piece.start,
     };
     paragraphs.push(current);
@@ -78,11 +87,13 @@ const buildParagraphs = (cues) => {
 
   cues.forEach((cue, index) => {
     const next = cues[index + 1];
+    // Another person speaking starts a new paragraph, mid-sentence or not
+    if (current && cue.speaker !== current.speaker) current = null;
     const pieces = cue.text.replace(/\n/g, ' ').match(SENTENCES) || [];
 
     pieces.forEach((text, position) => {
       const piece = { index, key: `${index}-${position}`, start: cue.start, text };
-      if (!current) open(piece);
+      if (!current) open(piece, cue.speaker || null);
 
       current.pieces.push(piece);
       current.last = index;
@@ -174,7 +185,8 @@ const pickLocale = (captions, interfaceLocale) => {
   return (match || captions[0]).locale;
 };
 
-const Paragraph = React.memo(({ activeCue, current, intl, paragraph, past }) => {
+// `speaker` is shown when it changes from the paragraph before
+const Paragraph = React.memo(({ activeCue, current, intl, paragraph, past, speaker }) => {
   const time = formatTime(paragraph.start);
 
   return (
@@ -182,14 +194,17 @@ const Paragraph = React.memo(({ activeCue, current, intl, paragraph, past }) => 
       className={cx('studio-paragraph', { current, future: !past })}
       data-id={paragraph.id}
     >
-      <button
-        aria-label={intl.formatMessage(intlMessages.seek, { time })}
-        className="studio-paragraph-time"
-        onClick={() => seekTo(paragraph.start)}
-        type="button"
-      >
-        {time}
-      </button>
+      <div className="studio-paragraph-head">
+        {speaker ? <span className="studio-paragraph-speaker">{speaker}</span> : null}
+        <button
+          aria-label={intl.formatMessage(intlMessages.seek, { time })}
+          className="studio-paragraph-time"
+          onClick={() => seekTo(paragraph.start)}
+          type="button"
+        >
+          {time}
+        </button>
+      </div>
       <p className="studio-paragraph-text">
         {paragraph.pieces.map((piece) => (
           // Mouse shortcut to any sentence; the time button above is the
@@ -261,7 +276,7 @@ const Transcript = ({ captions, cues, locale, setLocale, status, time }) => {
         className="studio-transcript studio-list"
         {...listProps}
       >
-        {paragraphs.map((paragraph) => (
+        {paragraphs.map((paragraph, index) => (
           <Paragraph
             activeCue={paragraph.first <= cueIndex && cueIndex <= paragraph.last ? cueIndex : -1}
             current={paragraph === current}
@@ -269,6 +284,9 @@ const Transcript = ({ captions, cues, locale, setLocale, status, time }) => {
             key={paragraph.id}
             paragraph={paragraph}
             past={cueIndex >= paragraph.first}
+            speaker={paragraph.speaker && paragraph.speaker !== (paragraphs[index - 1] || {}).speaker
+              ? paragraph.speaker
+              : null}
           />
         ))}
       </ul>
@@ -278,6 +296,8 @@ const Transcript = ({ captions, cues, locale, setLocale, status, time }) => {
 
 export {
   activeCue,
+  buildParagraphs,
+  parseVtt,
   pickLocale,
   useTranscript,
 };
