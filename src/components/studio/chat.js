@@ -61,7 +61,9 @@ const Message = React.memo(({ current, intl, item, onReply, past, repliedTo }) =
           </button>
         ) : null}
         <div
-          className={cx('studio-message-text', { emphasized: item.emphasized })}
+          // Every message in the same weight: the moderators' come emphasized
+          // (chatEmphasizedText) but read as the attendees'
+          className="studio-message-text"
           dangerouslySetInnerHTML={sanitize(item.message)}
         />
         {reactions.length ? (
