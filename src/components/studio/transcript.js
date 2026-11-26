@@ -7,7 +7,7 @@ import { formatTime, seekTo } from './utils';
 
 const intlMessages = defineMessages({
   aria: { id: 'studio.transcript.aria', defaultMessage: 'Transcription' },
-  empty: { id: 'studio.transcript.empty', defaultMessage: 'This recording has no transcription.' },
+  empty: { id: 'studio.transcript.empty', defaultMessage: "We didn't find a transcription in this recording." },
   error: { id: 'studio.transcript.error', defaultMessage: 'The transcription could not be loaded.' },
   language: { id: 'studio.transcript.language', defaultMessage: 'Language' },
   loading: { id: 'studio.transcript.loading', defaultMessage: 'Loading the transcription…' },

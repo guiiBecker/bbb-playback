@@ -28,7 +28,8 @@ const intlMessages = defineMessages({
 // actions come in a later step
 const Panel = ({ captions, duration, locale, setLocale, time, transcript }) => {
   const intl = useIntl();
-  // Opens on the chat, the first tab
+  // Every tab is always there: one the recording has nothing for says so
+  // with its empty message. Opens on the chat, the first tab
   const [tab, setTab] = useState(TABS[0]);
   const { end, name, start } = storage.metadata;
   // The media's own duration; the recording's start/end until the media loads

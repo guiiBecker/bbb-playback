@@ -7,7 +7,7 @@ const intlMessages = defineMessages({
   aria: { id: 'studio.apps.aria', defaultMessage: 'Apps' },
   back: { id: 'studio.apps.back', defaultMessage: 'Back to the apps' },
   backLabel: { id: 'studio.apps.backLabel', defaultMessage: 'Apps' },
-  empty: { id: 'studio.apps.empty', defaultMessage: 'No apps for this recording.' },
+  empty: { id: 'studio.apps.empty', defaultMessage: "We didn't find apps in this recording." },
 });
 
 // The Apps tab: a gallery of tiles like the BigBlueButton client's apps

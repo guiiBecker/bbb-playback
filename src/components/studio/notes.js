@@ -5,7 +5,7 @@ import storage from 'utils/data/storage';
 
 const intlMessages = defineMessages({
   aria: { id: 'studio.notes.aria', defaultMessage: 'Shared notes' },
-  empty: { id: 'studio.notes.empty', defaultMessage: 'No shared notes in this recording.' },
+  empty: { id: 'studio.notes.empty', defaultMessage: "We didn't find shared notes in this recording." },
   hint: { id: 'studio.notes.hint', defaultMessage: 'As they were when the meeting ended' },
 });
 

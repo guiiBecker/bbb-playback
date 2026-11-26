@@ -12,7 +12,7 @@ import { formatTime, seekTo } from './utils';
 const intlMessages = defineMessages({
   aria: { id: 'studio.chapters.aria', defaultMessage: 'Chapters' },
   chapter: { id: 'studio.chapters.chapter', defaultMessage: 'Chapter {number}' },
-  empty: { id: 'studio.chapters.empty', defaultMessage: 'No chapters in this recording.' },
+  empty: { id: 'studio.chapters.empty', defaultMessage: "We didn't find chapters in this recording." },
   screenshare: { id: 'studio.marker.screenshare', defaultMessage: 'Screen sharing' },
   slide: { id: 'studio.chapters.slide', defaultMessage: 'Slide {number}' },
 });

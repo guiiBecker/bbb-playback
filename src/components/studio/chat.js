@@ -10,7 +10,7 @@ import { formatTime, seekTo } from './utils';
 
 const intlMessages = defineMessages({
   aria: { id: 'studio.chat.aria', defaultMessage: 'Chat messages' },
-  empty: { id: 'studio.chat.empty', defaultMessage: 'No chat messages in this recording.' },
+  empty: { id: 'studio.chat.empty', defaultMessage: "We didn't find chat messages in this recording." },
   edited: { id: 'studio.chat.edited', defaultMessage: '(edited)' },
   seek: { id: 'studio.chat.seek', defaultMessage: 'Go to {time}' },
   reply: { id: 'studio.chat.reply', defaultMessage: 'Show the replied message' },
