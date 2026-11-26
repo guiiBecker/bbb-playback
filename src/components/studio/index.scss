@@ -43,11 +43,13 @@
 
   // The redesign's dark player and its surroundings. No design system
   // counterpart yet, so no theme variable behind them
-  --studio-shell: #1F2328;                // around the panel and the player
-  // INFO: the recording's master MP4 is rendered with this same colour as its
-  // background (record-and-playback video format, video.yml preset
-  // `background_color`), so it blends into the stage: change both together
-  --studio-player: #001428;               // stage and controls, also in fullscreen
+  // INFO: one background for the whole player, #102133: around the panel and
+  // the player, the stage and the controls. The recording's video is rendered
+  // with this same colour as its background (record-and-playback video
+  // format, video.yml preset `background_color`), so it blends into the
+  // stage: change them together
+  --studio-shell: #102133;                // around the panel and the player
+  --studio-player: #102133;               // stage and controls, also in fullscreen
   --studio-player-text: #F1F3F6;
   --studio-player-muted: #B4BCC8;
   --studio-player-rail: #4A515C;
