@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Publishes the meeting's participants next to a presentation recording, as
+# Publishes the meeting's participants next to a recording (video format, or presentation), as
 # participants.json, for the playback's participant list.
 #
 # The published recording keeps only their number (metadata.xml); the names
@@ -8,7 +8,7 @@
 # publish (post_publish), or by hand for a recording already published:
 #
 #   cd /usr/local/bigbluebutton/core/scripts/post_publish
-#   sudo -u bigbluebutton ruby participants.rb -m <record id> -f presentation
+#   sudo -u bigbluebutton ruby participants.rb -m <record id> -f video
 #
 # Only each person's name and role are written, in the order they first
 # joined: no internal or external user ids, no join or leave times.
@@ -22,7 +22,9 @@ opts = Optimist.options do
   opt :format, 'Playback format name', type: String
 end
 meeting_id = opts[:meeting_id]
-exit 0 unless opts[:format] == 'presentation'
+# The new playback reads the video format's directory; the presentation
+# format's is still served for older players
+exit 0 unless %w[video presentation].include?(opts[:format])
 
 props = BigBlueButton.read_props
 logger = Logger.new("#{props['log_dir']}/post_publish.log", 'weekly')
@@ -30,7 +32,7 @@ logger.level = Logger::INFO
 BigBlueButton.logger = logger
 
 events_xml = "#{props['recording_dir']}/raw/#{meeting_id}/events.xml"
-published_dir = "#{props['published_dir']}/presentation/#{meeting_id}"
+published_dir = "#{props['published_dir']}/#{opts[:format]}/#{meeting_id}"
 unless File.exist?(events_xml) && File.directory?(published_dir)
   logger.info("participants: nothing to do for #{meeting_id}")
   exit 0

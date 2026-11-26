@@ -6,78 +6,82 @@ playback (`src/components/studio/`) needs, until they are proposed to
 
 ## What the playback reads
 
-The redesigned playback plays one MP4 with everything in it (slides or
-screen sharing, webcams, audio). That same file is the download. Next to it
-are data files for the panel and the overlays:
+Only BBB's **`video` recording format** runs. The `presentation` format is not
+needed. The playback reads one folder, `/playback/video/<record id>/`:
 
-| File | Where | Made by | Used for |
-|---|---|---|---|
-| `video-0.mp4` | `/playback/video/<id>/` | the `video` format | the stage, and the download |
-| `layout.json` | `/playback/video/<id>/` | the `video` format (patch not here yet, see below) | names over the webcams, hiding them |
-| `talking.json` | `/presentation/<id>/` | `post_publish/studio_data.rb` | who is talking |
-| `timeline.json` | `/presentation/<id>/` | `post_publish/studio_data.rb` | raised hands and reactions on the timeline |
-| `participants.json` | `/presentation/<id>/` | `post_publish/participants.rb` | the participants list |
-| slides, chat, captions, notes... | `/presentation/<id>/` | the `presentation` format, as today | panel tabs, chapters, markers |
+| File | Made by | Used for |
+|---|---|---|
+| `video-<n>.m4v` / `video-<n>.mp4` | the `video` format | the stage and the download |
+| `metadata.xml` | the `video` format | name, date, duration |
+| `captions.json` + `caption_<lang>.vtt` | the `video` format | captions and the Transcription tab |
+| `video.xml` | the `video` format | the Chat tab and its markers |
+| `layout.json` | the `video` format (change not here yet, see below) | names and who is talking over the webcams, hiding them |
+| `talking.json` | `post_publish/studio_data.rb` | who is talking |
+| `timeline.json` | `post_publish/studio_data.rb` | raised hands and reactions on the timeline |
+| `participants.json` | `post_publish/participants.rb` | the participants list |
 
-The playback plays **only** `video-0.mp4`: no WebM, no webcams video or audio
-of the `presentation` format. Without it the recording shows the "not found"
-error. Every JSON is optional. If one is missing, its feature is just not
-shown.
+**The video.** The playback looks for `video-0.m4v`, then `video-1.m4v`, then
+`video-0.mp4`. It plays the first one found and the download offers that same
+file. The `video` format names each output `video-<its index in the preset>.<extension>`,
+so a preset that outputs `[mp4, m4v]` publishes `video-0.mp4` and `video-1.m4v`.
+Both hold the same H.264/AAC. Without any of them the recording shows the
+"not found" error. There is no WebM and no `presentation` format fallback.
+
+**The tabs.** All the tabs are always shown. When the recording has nothing
+for one, it says so. Notes, Chapters and Apps (polls) came from the
+`presentation` format, so they stay empty until the `video` format makes that
+data too.
+
+Every JSON is optional. If one is missing, its feature is just not shown.
 
 ## What is here
 
-- `presentation-data-only.patch`: the `presentation` format with
-  `video_formats: []` publishes data only. It makes no webcams video and no
-  screen sharing video, because the MP4 has them. The audio mix is still
-  published, so older players keep the sound. The patch is written against
-  `bigbluebutton/bigbluebutton` `v4.0.x-release`.
 - `post_publish/studio_data.rb`: writes `talking.json` and `timeline.json`
   from the raw `events.xml`.
 - `post_publish/participants.rb`: writes `participants.json`.
-- `make-data-copy.sh`: makes an isolated copy of the server's recording core
-  with the patch and the post_publish scripts. The installed core is not
-  changed.
-- `publish-presentation-data.sh <record id>`: processes and publishes one
-  recording, data only, from that copy. Then it runs the post_publish
-  scripts. The raw files must still be on the server.
 
-## Not here yet: the master MP4 and `layout.json`
+Both run as post_publish scripts of the `video` format (`-f video`) and write
+into its folder. Copy them to
+`/usr/local/bigbluebutton/core/scripts/post_publish/` on a BBB server, or run
+them by hand on a recording that is already published:
 
-The MP4 comes from BBB's `video` format with a new preset:
+```sh
+cd /usr/local/bigbluebutton/core/scripts/post_publish
+sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f video
+sudo -u bigbluebutton ruby participants.rb -m <record id> -f video
+```
+
+The raw files must still be on the server.
+
+## Not here yet: the video format's preset and `layout.json`
+
+The video comes from the `video` format with a new preset:
 - 1920x1080 at 15 fps;
 - presentation or screen sharing 16:9 on the left, a fixed column of up to
   4 webcams on the right;
 - the presentation drawn at 5 fps;
 - background `#001428`, the playback's `--studio-player`, so the video
-  blends into the stage.
+  blends into the stage;
+- outputs MP4 and M4V.
 
 Each render also writes `layout.json`. Those changes are not in this folder
-yet. They will come when they are written on top of the upstream
-`video` format. Until then, test with recordings that already have them
-(ask the team).
+yet. They will come when they are written on top of the upstream `video`
+format.
 
-Every recording the playback opens needs the master MP4. The data-only patch
-leaves the `presentation` format without any video, which is fine for this
-playback: it never plays the `presentation` format's media.
+Recording pauses need nothing extra: the `video` format joins the recorded
+periods (the record button's start and stop in `events.xml`), and the JSON
+files use the same timeline.
 
-## Usage, on a BBB server
+## Processing steps
 
-```sh
-sudo ./make-data-copy.sh                      # once: /var/bigbluebutton/recording/rap-presentation-data
-sudo ./publish-presentation-data.sh <record id>
-```
+With only the `video` format, `bigbluebutton.yml` would have:
 
-The previous published copy of the recording goes to
-`/var/bigbluebutton/recording/presentation-backup/` (`BACKUP=...` to
-change). If the publish fails, it is put back.
-
-The post_publish scripts can also run alone, on a recording already
-published:
-
-```sh
-cd /usr/local/bigbluebutton/core/scripts/post_publish   # after copying them there
-sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f presentation
-sudo -u bigbluebutton ruby participants.rb -m <record id> -f presentation
+```yaml
+steps:
+  archive: "sanity"
+  sanity: "captions"
+  captions: "process:video"
+  "process:video": "publish:video"
 ```
 
 ## File formats
@@ -104,14 +108,16 @@ joined, and anything outside them is dropped.
               "height": 364, "border": 10, "user": "<user id>" }] }
 ```
 
+Captions may say who speaks with a WebVTT voice span, `<v Ana>text`. The
+Transcription tab then shows the name and starts a new paragraph when the
+speaker changes.
+
 ## Cost
 
-Measured on 3 recordings of 25-33 minutes, on a 2 vCPU (1 physical core)
-server:
+Measured on a 2 vCPU (1 physical core) server, 1080p preset:
 
-| | CPU seconds per recorded minute | Published size |
+| Recording | CPU seconds per recorded minute | Size per hour |
 |---|---|---|
-| `presentation` today (webcams mosaic) | 9.6-10.4 | - |
-| `presentation`, data only | 1.5-1.9 | 28-36 MB per recording (mostly slide images) |
-| master MP4, 1080p (with webcams) | 23.5-24.9 | 173-183 MB per hour |
-| master MP4, 1080p (screen sharing only) | 14.2 | 131 MB per hour |
+| 25-33 min, up to 5 webcams at once | 23.5-24.9 | 173-183 MB |
+| 32 min, screen sharing only | 14.2 | 131 MB |
+| 1 h 31, 10 webcams, 5 screen shares, 1 pause | 26.6 (24 min of wall time) | 233 MB |

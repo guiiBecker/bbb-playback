@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Publishes the new playback's data files next to a presentation recording,
+# Publishes the new playback's data files next to a recording (video format, or presentation),
 # from the raw events.xml (which is not published):
 #
 #   talking.json   who talked when (kept if the publish step already wrote it):
@@ -15,7 +15,7 @@
 # Runs after each publish (post_publish), or by hand for one already published:
 #
 #   cd /usr/local/bigbluebutton/core/scripts/post_publish
-#   sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f presentation
+#   sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f video
 
 require 'json'
 require 'optimist'
@@ -26,7 +26,9 @@ opts = Optimist.options do
   opt :format, 'Playback format name', type: String
 end
 meeting_id = opts[:meeting_id]
-exit 0 unless opts[:format] == 'presentation'
+# The new playback reads the video format's directory; the presentation
+# format's is still served for older players
+exit 0 unless %w[video presentation].include?(opts[:format])
 
 props = BigBlueButton.read_props
 logger = Logger.new("#{props['log_dir']}/post_publish.log", 'weekly')
@@ -34,7 +36,7 @@ logger.level = Logger::INFO
 BigBlueButton.logger = logger
 
 events_xml = "#{props['recording_dir']}/raw/#{meeting_id}/events.xml"
-published_dir = "#{props['published_dir']}/presentation/#{meeting_id}"
+published_dir = "#{props['published_dir']}/#{opts[:format]}/#{meeting_id}"
 unless File.exist?(events_xml) && File.directory?(published_dir)
   logger.info("studio_data: nothing to do for #{meeting_id}")
   exit 0
