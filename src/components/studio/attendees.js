@@ -18,7 +18,6 @@ const intlMessages = defineMessages({
   open: { id: 'studio.attendees.open', defaultMessage: 'See all participants' },
   title: { id: 'studio.attendees.title', defaultMessage: 'Participants ({count})' },
   close: { id: 'studio.attendees.close', defaultMessage: 'Close' },
-  moderator: { id: 'studio.attendees.moderator', defaultMessage: 'Moderator' },
   unnamed: {
     id: 'studio.attendees.unnamed',
     defaultMessage: '{count, plural, one {# more participant has} other {# more participants have}} no name in this recording.',
@@ -114,9 +113,6 @@ const ParticipantsDialog = ({ intl, onClose, people, total }) => {
           <li key={`${person.name}-${index}`}>
             <Avatar name={person.name} />
             <span className="studio-participants-name">{person.name}</span>
-            {person.role === 'MODERATOR' ? (
-              <span className="studio-participants-role">{intl.formatMessage(intlMessages.moderator)}</span>
-            ) : null}
           </li>
         ))}
       </ul>

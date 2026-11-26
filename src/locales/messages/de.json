@@ -98,7 +98,6 @@
   "studio.attendees.open": "Alle Teilnehmenden anzeigen",
   "studio.attendees.title": "Teilnehmende ({count})",
   "studio.attendees.close": "Schließen",
-  "studio.attendees.moderator": "Moderation",
   "studio.attendees.unnamed": "{count, plural, one {# weitere Person hat} other {# weitere Personen haben}} in dieser Aufzeichnung keinen Namen.",
   "studio.chapters.aria": "Kapitel",
   "studio.chapters.chapter": "Kapitel {number}",
