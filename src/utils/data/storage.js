@@ -2,7 +2,6 @@ import { files, presentation } from 'config';
 import {
   addAlternatesToThumbnails,
   build,
-  mergeMessages,
 } from 'utils/builder';
 import {
   ERROR,
@@ -13,11 +12,7 @@ import {
   buildPresentationFileURL,
   getFileType,
 } from 'utils/data';
-import {
-  hasPresentation,
-  hasProperty,
-  isEmpty,
-} from 'utils/data/validators';
+import { hasProperty } from 'utils/data/validators';
 import logger from 'utils/logger';
 
 const STATE = {
@@ -173,31 +168,15 @@ const storage = {
   get status() {
     return STATUS;
   },
-  get data() {
-    return DATA;
-  },
   get built() {
     return {
       captions: hasProperty(DATA, ID.CAPTIONS),
       chat: hasProperty(DATA, ID.CHAT),
       notes: hasProperty(DATA, ID.NOTES),
       polls: hasProperty(DATA, ID.POLLS),
-      videos: hasProperty(DATA, ID.VIDEOS),
       presentation: hasProperty(DATA, ID.SHAPES),
       screenshare: hasProperty(DATA, ID.SCREENSHARE),
       layoutSwap: hasProperty(DATA, ID.LAYOUT),
-    };
-  },
-  get content() {
-    return {
-      captions: !isEmpty(this.captions),
-      chat: !isEmpty(this.chat),
-      notes: !isEmpty(this.notes),
-      polls: !isEmpty(this.polls),
-      videos: !isEmpty(this.videos),
-      presentation: hasPresentation(this.slides),
-      screenshare: !isEmpty(this.screenshare),
-      layoutSwap: !isEmpty(this.layoutSwap),
     };
   },
   get alternates() {
@@ -212,27 +191,9 @@ const storage = {
   get polls() {
     return DATA[ID.POLLS];
   },
-  get videos() {
-    return DATA[ID.VIDEOS];
-  },
-  get cursor() {
-    const result = DATA[ID.CURSOR];
-    return result ? result.data : [];
-  },
   // { url, type } of the recording's M4V (or MP4)
   get media() {
     return DATA[ID.MEDIA];
-  },
-  get messages() {
-    if (!hasProperty(DATA, ID.MESSAGES)) {
-      DATA[ID.MESSAGES] = mergeMessages(
-        this.chat,
-        this.polls,
-        this.videos,
-      );
-    }
-
-    return DATA[ID.MESSAGES];
   },
   get metadata() {
     return DATA[ID.METADATA];
@@ -241,10 +202,6 @@ const storage = {
   // post_publish step); the presentation format's when that one has none
   get notes() {
     return DATA[ID.NOTES] || DATA.presentationNotes;
-  },
-  get panzooms() {
-    const result = DATA[ID.PANZOOMS];
-    return result ? result.data : [];
   },
   get screenshare() {
     return DATA[ID.SCREENSHARE];
@@ -257,9 +214,6 @@ const storage = {
   },
   get slides() {
     return this.shapes[ID.SLIDES] || [];
-  },
-  get canvases() {
-    return this.shapes[ID.CANVASES] || [];
   },
   // What the presentation area showed: the video format's slides.json first,
   // the presentation format's shapes.svg when that one has none
@@ -274,9 +228,6 @@ const storage = {
   },
   get layoutSwap() {
     return DATA[ID.LAYOUT];
-  },
-  get tldraw() {
-    return DATA[ID.TLDRAW];
   },
 };
 

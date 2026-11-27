@@ -10,14 +10,6 @@ const getFrequency = () => {
   return null;
 };
 
-const getLayout = () => {
-  const param = getSearchParam('l');
-
-  if (param) return param;
-
-  return null;
-};
-
 const getMediaPath = () => {
   const param = getSearchParam('p');
 
@@ -126,7 +118,6 @@ const parseTimeToSeconds = time => {
 
 export {
   getFrequency,
-  getLayout,
   getMediaPath,
   getStyle,
   getSearchParam,

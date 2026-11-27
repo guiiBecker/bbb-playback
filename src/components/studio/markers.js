@@ -3,7 +3,7 @@ import storage from 'utils/data/storage';
 
 // Marker types, from the most to the least relevant: when markers merge, the
 // most relevant type gives the icon
-const TYPES = ['poll', 'video', 'screenshare', 'hand', 'chat', 'reaction', 'slide'];
+const TYPES = ['poll', 'screenshare', 'hand', 'chat', 'reaction', 'slide'];
 
 // Markers closer than this (a fraction of the duration) merge into one, so a
 // busy recording does not draw an unreadable row of icons
@@ -13,10 +13,11 @@ const MARKER_BUCKET = 0.03;
 // changes is one segment, not a row of slivers
 const SEGMENT_MIN = 0.02;
 
-// Everything with a time in the published recording: chat (slides_new.xml),
-// slides and screen sharing (shapes.svg, deskshare.xml), polls (polls.json),
-// external videos (external_videos.json), and raised hands and reactions
-// (`timeline`: timeline.json, from the server's post_publish studio_data.rb).
+// Everything with a time in the published recording: chat (video.xml),
+// slides and screen sharing (slides.json, else the presentation format's
+// shapes.svg and deskshare.xml), polls (polls.json), and raised hands and
+// reactions (`timeline`: timeline.json, from the server's post_publish
+// studio_data.rb).
 // Of the chat only the moderators' messages: all of it would bury the
 // timeline, and the chat tab lists the rest
 const collectEvents = (duration, timeline) => {
@@ -30,9 +31,6 @@ const collectEvents = (duration, timeline) => {
     .filter((message) => message.moderator)
     .forEach((message) => add('chat', message.timestamp));
   (storage.polls || []).forEach((poll) => add('poll', poll.timestamp));
-  // A stop with no start (the recording began with the video already
-  // stopped) publishes an entry with no URL: not a video
-  (storage.videos || []).filter((video) => video.url).forEach((video) => add('video', video.timestamp));
   // Screen sharing: the presentation format's deskshare.xml, else where the
   // slides (slides.json) say the screen sharing was shown
   const shares = (storage.screenshare || []).length

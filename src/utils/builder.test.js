@@ -4,41 +4,7 @@ import {
   getAttr,
   getId,
   getNumbers,
-  mergeMessages,
 } from './builder';
-
-it('merges and sorts messages arrays', () => {
-  let chat = [
-    { timestamp: 5.1, type: 'chat' },
-    { timestamp: 11.9, type: 'chat' },
-    { timestamp: 10.1, type: 'chat' },
-  ];
-
-  let polls = [
-    { timestamp: 4.0, type: 'poll' },
-    { timestamp: 16.9, type: 'poll' },
-    { timestamp: 10.1, type: 'poll' },
-  ];
-
-  let videos = [
-    { timestamp: 3.0, type: 'video' },
-    { timestamp: 19.0, type: 'video' },
-    { timestamp: 12.1, type: 'video' },
-  ];
-
-
-  expect(mergeMessages(chat, polls, videos)).toEqual([
-    { timestamp: 3.0, type: 'video' },
-    { timestamp: 4.0, type: 'poll' },
-    { timestamp: 5.1, type: 'chat' },
-    { timestamp: 10.1, type: 'chat' },
-    { timestamp: 10.1, type: 'poll' },
-    { timestamp: 11.9, type: 'chat' },
-    { timestamp: 12.1, type: 'video' },
-    { timestamp: 16.9, type: 'poll' },
-    { timestamp: 19.0, type: 'video' },
-  ]);
-});
 
 it('builds style object from a string', () => {
   let value = 'first: 1; second: two; visibility: hidden;';

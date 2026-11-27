@@ -109,19 +109,6 @@ const buildPolls = result => {
   return data;
 };
 
-const buildVideos = result => {
-  if (!result) return [];
-
-  const data = result.map(r => {
-    return {
-      timestamp: r.timestamp,
-      url: r.external_video_url,
-    };
-  });
-
-  return data;
-};
-
 // The presentation format's metadata.xml has <meeting id name>; the video
 // format's has the record <id>, and the name only in <meta>
 const buildMetadata = result => {
@@ -360,40 +347,6 @@ const buildShapes = result => {
   return data;
 };
 
-const buildTldraw = result => {
-  if (!result) return [];
-
-  const { bbb_version, ...slides } = result;
-
-  if (Object.keys(slides).length === 0) {
-    if (bbb_version) {
-      return [{
-        data: [],
-        bbb_version,
-      }];
-    }
-    return [];
-  }
-
-  const tldraw = Object.entries(slides).map(([id, slideData]) => {
-    const data = slideData.shapes.map(shape => ({
-      clear: shape.undo,
-      id: shape.id,
-      shape: shape.shape_data,
-      timestamp: shape.timestamp,
-    }));
-
-    return {
-      data,
-      timestamp: slideData.timestamp,
-      id,
-      bbb_version,
-    };
-  });
-
-  return tldraw;
-};
-
 const buildLayout = result => {
   const { recording } = result;
 
@@ -414,49 +367,6 @@ const buildLayout = result => {
   }
 
   return [];
-};
-
-const buildPanzooms = result => {
-  let data = [];
-  let tldraw = false;
-  const { recording } = result;
-
-  if (hasProperty(recording, 'event')) {
-    tldraw = recording._tldraw === 'true';
-    data = convertToArray(recording.event).map(panzoom => {
-      const viewbox = getNumbers(panzoom.viewBox);
-      return {
-        timestamp: parseFloat(panzoom._timestamp),
-        x: viewbox.shift(),
-        y: viewbox.shift(),
-        width: viewbox.shift(),
-        height: viewbox.shift(),
-      };
-    });
-  }
-
-  return { data, tldraw };
-};
-
-const buildCursor = result => {
-  let data = [];
-  let tldraw = false;
-  const { recording } = result;
-
-  if (hasProperty(recording, 'event')) {
-    tldraw = recording._tldraw === 'true';
-    data = convertToArray(recording.event).map(cursor => {
-      const position = getNumbers(cursor.cursor);
-
-      return {
-        timestamp: parseFloat(cursor._timestamp),
-        x: position.shift(),
-        y: position.shift(),
-      };
-    });
-  }
-
-  return { data, tldraw };
 };
 
 const getInitials = name => {
@@ -566,12 +476,6 @@ const build = (filename, value) => {
         case config.polls:
           data = buildPolls(value);
           break;
-        case config.videos:
-          data = buildVideos(value);
-          break;
-        case config.tldraw:
-          data = buildTldraw(value);
-          break;
         default:
           logger.debug('unhandled', 'json', filename);
           reject(filename);
@@ -604,14 +508,8 @@ const build = (filename, value) => {
           case config.chat:
             data = buildChat(result);
             break;
-          case config.cursor:
-            data = buildCursor(result);
-            break;
           case config.metadata:
             data = buildMetadata(result);
-            break;
-          case config.panzooms:
-            data = buildPanzooms(result);
             break;
           case config.screenshare:
             data = buildScreenshare(result);
@@ -647,14 +545,6 @@ const addAlternatesToThumbnails = (thumbnails, alternates) => {
   });
 };
 
-const mergeMessages = (chat = [], polls = [], videos = []) => {
-  return [
-    ...chat,
-    ...polls,
-    ...videos,
-  ].sort((a, b) => a.timestamp - b.timestamp);
-};
-
 export {
   addAlternatesToThumbnails,
   build,
@@ -662,5 +552,4 @@ export {
   getAttr,
   getId,
   getNumbers,
-  mergeMessages,
 };

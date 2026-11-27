@@ -1,4 +1,3 @@
-const BUILD = process.env.REACT_APP_BBB_PLAYBACK_BUILD;
 const MEDIA_ROOT_URL = process.env.REACT_APP_MEDIA_ROOT_URL;
 const NO_ROUTER = process.env.REACT_APP_NO_ROUTER;
 
@@ -79,15 +78,6 @@ const NUMBERS = [
   'twelve', 'thirteen', 'fourteen', 'fifteen',
 ];
 
-const POSITIONS = {
-  BOTTOM: 'bottom',
-  CENTER: 'center',
-  LEFT: 'left',
-  MIDDLE: 'middle',
-  RIGHT: 'right',
-  TOP: 'top',
-};
-
 const ROLES = {
   MODERATOR: 'MODERATOR',
   VIEWER: 'VIEWER',
@@ -103,11 +93,6 @@ const SHAPES = {
   TEXT: 'text',
 };
 
-const THEME = {
-  DARK: 'dark',
-  LIGHT: 'light',
-};
-
 const getRouter = () => {
   if (typeof NO_ROUTER !== 'undefined') {
     if (NO_ROUTER === '1') return false;
@@ -119,7 +104,6 @@ const getRouter = () => {
 const ROUTER = getRouter();
 
 export {
-  BUILD,
   CONTENT,
   ERROR,
   EVENTS,
@@ -127,9 +111,7 @@ export {
   LAYOUT,
   MEDIA_ROOT_URL,
   NUMBERS,
-  POSITIONS,
   ROLES,
   ROUTER,
   SHAPES,
-  THEME,
 };

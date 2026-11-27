@@ -39,7 +39,6 @@ const intlMessages = defineMessages({
   slide: { id: 'studio.marker.slide', defaultMessage: '{count, plural, one {# slide change} other {# slide changes}}' },
   poll: { id: 'studio.marker.poll', defaultMessage: '{count, plural, one {# poll} other {# polls}}' },
   screenshare: { id: 'studio.marker.screenshare', defaultMessage: 'Screen sharing' },
-  video: { id: 'studio.marker.video', defaultMessage: '{count, plural, one {# external video} other {# external videos}}' },
 });
 
 const MARKER_ICONS = {
@@ -49,7 +48,6 @@ const MARKER_ICONS = {
   reaction: 'reaction',
   screenshare: 'screenshare',
   slide: 'slides',
-  video: 'video',
 };
 
 // "01:15 · 2 moderator messages, 1 slide change"; raised hands by who raised
