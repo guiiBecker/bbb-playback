@@ -22,6 +22,7 @@ The playback plays BBB's **`video` recording format** and reads its folder,
 | `timeline.json` | `post_publish/studio_data.rb` | raised hands (with who raised them) and reactions on the timeline |
 | `notes.html` + `notes.pdf` | `post_publish/studio_data.rb` | the Notes tab, its PDF download (its Markdown is made in the browser) |
 | `participants.json` | `post_publish/participants.rb` | the participants list |
+| `slides.json` + `presentation/<id>/thumbnails/` | `post_publish/chapters.rb` | the Chapters tab, slide and screen sharing markers, the chapters in the download |
 
 **The video.** The playback looks for `video-0.m4v`, then `video-1.m4v`, then
 `video-0.mp4`. It plays the first one found and the download offers that same
@@ -32,16 +33,15 @@ recording shows the "not found" error. There is no WebM, and the video never
 comes from the `presentation` format.
 
 **The tabs.** All the tabs are always shown. When the recording has nothing
-for one, it says so. The notes come from the `video` format's folder
-(`notes.html`, published by `post_publish/studio_data.rb`). What the `video`
-format does not have is read from the `presentation` format's folder,
-`/presentation/<record id>/`, when it is there, as the classic player did:
-the polls (`polls.json`), for the chapters and the timeline the slides and
-screen sharing (`shapes.svg`, `presentation_text.json`, `deskshare.xml`,
-`layout.xml`), and the notes of a recording whose `video` folder has none.
+for one, it says so. The notes and the chapters come from the `video`
+format's folder (`notes.html` from `post_publish/studio_data.rb`,
+`slides.json` from `post_publish/chapters.rb`). What is not there is read
+from the `presentation` format's folder, `/presentation/<record id>/`, when
+it is there, as the classic player did: the polls (`polls.json`), and the
+notes or the slides (`shapes.svg`, `presentation_text.json`,
+`deskshare.xml`, `layout.xml`) of a recording whose `video` folder has none.
 Nothing has to be installed for that. On a server that does not run the
-`presentation` format, Chapters and Apps are empty, and the rest plays as
-usual.
+`presentation` format, only Apps (polls) is empty.
 
 Every JSON is optional. If one is missing, its feature is just not shown.
 
@@ -88,6 +88,12 @@ or per meeting with the `bbb-recording-video-preset` meta parameter.
   `events.xml`, and publishes the shared notes the archive step exported
   (`notes.html`, `notes.pdf`).
 - `participants.rb`: writes `participants.json`.
+- `chapters.rb`: writes `slides.json`, what the presentation area showed
+  (each slide with its thumbnail and text, and the screen sharing), and
+  publishes the thumbnails of the slides shown. Its sequence is the
+  `presentation` format's (`publish/presentation.rb`, `process_presentation`):
+  on two recordings it gives the same slides at the same times as that
+  format's `shapes.svg`.
 
 Both run as post_publish scripts of the `video` format (`-f video`) and write
 into its folder. Copy them to
@@ -98,6 +104,7 @@ them by hand on a recording that is already published:
 cd /usr/local/bigbluebutton/core/scripts/post_publish
 sudo -u bigbluebutton ruby studio_data.rb -m <record id> -f video
 sudo -u bigbluebutton ruby participants.rb -m <record id> -f video
+sudo -u bigbluebutton ruby chapters.rb -m <record id> -f video
 ```
 
 The raw files must still be on the server.
