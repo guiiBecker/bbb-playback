@@ -30,7 +30,7 @@ opts = Optimist.options do
   opt :format, 'Playback format name', type: String
 end
 meeting_id = opts[:meeting_id]
-exit 0 unless %w[video presentation].include?(opts[:format])
+exit 0 unless opts[:format] == 'video'
 
 props = BigBlueButton.read_props
 logger = Logger.new("#{props['log_dir']}/post_publish.log", 'weekly')

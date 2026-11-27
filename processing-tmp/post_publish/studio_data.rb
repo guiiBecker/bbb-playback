@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Publishes the new playback's data files next to a recording (video format, or presentation),
+# Publishes the new playback's data files next to the video format's recording,
 # from the raw events.xml (which is not published):
 #
 #   talking.json   who talked when (kept if the publish step already wrote it):
@@ -30,9 +30,8 @@ opts = Optimist.options do
   opt :format, 'Playback format name', type: String
 end
 meeting_id = opts[:meeting_id]
-# The new playback reads the video format's directory; the presentation
-# format's is still served for older players
-exit 0 unless %w[video presentation].include?(opts[:format])
+# The playback reads these files only from the video format's directory
+exit 0 unless opts[:format] == 'video'
 
 props = BigBlueButton.read_props
 logger = Logger.new("#{props['log_dir']}/post_publish.log", 'weekly')
