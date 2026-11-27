@@ -261,7 +261,10 @@ const storage = {
   get canvases() {
     return this.shapes[ID.CANVASES] || [];
   },
+  // What the presentation area showed: the video format's slides.json first,
+  // the presentation format's shapes.svg when that one has none
   get thumbnails() {
+    if ((DATA.videoSlides || []).length) return DATA.videoSlides;
     if (!hasProperty(DATA, ID.THUMBNAILS)) {
       const thumbnails = this.shapes[ID.THUMBNAILS];
       DATA[ID.THUMBNAILS] = thumbnails ? addAlternatesToThumbnails(thumbnails, this.alternates || []) : [];

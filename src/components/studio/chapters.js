@@ -3,7 +3,7 @@ import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
 import { buildThumbnailItems } from 'components/thumbnails/utils';
 import { ID } from 'utils/constants';
-import { buildPresentationFileURL } from 'utils/data';
+import { buildFileURL, buildPresentationFileURL } from 'utils/data';
 import storage from 'utils/data/storage';
 import { useFollow } from './follow';
 import Icon from './icon';
@@ -39,6 +39,8 @@ const firstLine = (text) => (text || '')
   .find(Boolean) || '';
 
 const toChapter = (item, start, index) => ({
+  // Where its picture is: 'video' for slides.json, else the presentation format
+  folder: item.folder,
   height: item.height,
   id: `chapter-${index}`,
   src: item.src,
@@ -135,8 +137,11 @@ const Thumbnail = ({ chapter }) => {
     ? { height: chapter.height, width: chapter.width }
     : {};
 
-  // The slides' pictures are the presentation format's
-  return <img alt="" loading="lazy" src={buildPresentationFileURL(chapter.src)} {...size} />;
+  // The slides' pictures: next to the video (slides.json), or the
+  // presentation format's
+  const url = chapter.folder === 'video' ? buildFileURL(chapter.src) : buildPresentationFileURL(chapter.src);
+
+  return <img alt="" loading="lazy" src={url} {...size} />;
 };
 
 const Chapter = React.memo(({ chapter, current, index, intl, progress }) => {

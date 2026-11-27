@@ -143,3 +143,17 @@ it('reads polls.json, also when it is not a list or a poll has no answers', asyn
     { answers: [], question: 'Ready?', timestamp: 23 },
   ]);
 });
+
+it('reads the slides.json of the video format\'s folder', async () => {
+  const slides = await build('slides.json', [
+    { alt: 'Welcome', height: 90, src: 'presentation/p/thumbnails/thumb-1.png', timestamp: 0, width: 160 },
+    { src: 'screenshare', timestamp: 40.5 },
+    { src: 'broken' },
+  ]);
+
+  expect(slides).toEqual([
+    { alt: 'Welcome', folder: 'video', height: 90, id: 1, src: 'presentation/p/thumbnails/thumb-1.png', timestamp: 0, width: 160 },
+    { alt: '', folder: 'video', height: undefined, id: 2, src: 'screenshare', timestamp: 40.5, width: undefined },
+  ]);
+  expect(await build('slides.json', { not: 'a list' })).toEqual([]);
+});

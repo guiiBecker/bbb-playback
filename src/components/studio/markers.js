@@ -33,7 +33,12 @@ const collectEvents = (duration, timeline) => {
   // A stop with no start (the recording began with the video already
   // stopped) publishes an entry with no URL: not a video
   (storage.videos || []).filter((video) => video.url).forEach((video) => add('video', video.timestamp));
-  (storage.screenshare || []).forEach((share) => add('screenshare', share.timestamp));
+  // Screen sharing: the presentation format's deskshare.xml, else where the
+  // slides (slides.json) say the screen sharing was shown
+  const shares = (storage.screenshare || []).length
+    ? storage.screenshare
+    : (storage.thumbnails || []).filter((thumbnail) => thumbnail.src === ID.SCREENSHARE);
+  shares.forEach((share) => add('screenshare', share.timestamp));
   (Array.isArray(timeline) ? timeline : [])
     .filter((moment) => moment && (moment.type === 'hand' || moment.type === 'reaction'))
     .forEach((moment) => add(moment.type, moment.time, moment.name || null));

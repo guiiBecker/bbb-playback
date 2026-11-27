@@ -528,6 +528,25 @@ const buildScreenshare = result => {
   return data;
 };
 
+// slides.json (post_publish chapters.rb): what the presentation area showed,
+// as the thumbnails of shapes.svg are, its pictures in the video format's
+// folder (`folder`). Empty for anything else than a list
+const buildVideoSlides = result => {
+  if (!Array.isArray(result)) return [];
+
+  return result
+    .filter(item => item && typeof item.src === 'string' && Number.isFinite(item.timestamp))
+    .map((item, index) => ({
+      alt: typeof item.alt === 'string' ? item.alt : '',
+      folder: 'video',
+      height: item.height,
+      id: index + 1,
+      src: item.src === ID.SCREENSHARE ? ID.SCREENSHARE : item.src,
+      timestamp: item.timestamp,
+      width: item.width,
+    }));
+};
+
 const build = (filename, value) => {
   return new Promise((resolve, reject) => {
     let data;
@@ -540,6 +559,9 @@ const build = (filename, value) => {
           break;
         case config.captions:
           data = buildCaptions(value);
+          break;
+        case config.videoSlides:
+          data = buildVideoSlides(value);
           break;
         case config.polls:
           data = buildPolls(value);

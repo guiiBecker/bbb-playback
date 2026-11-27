@@ -26,6 +26,10 @@ const files = {
   chat: 'video.xml',
   metadata: 'metadata.xml',
   notes: 'notes.html',
+  // What the presentation area showed, for the chapters and the timeline,
+  // published by the post_publish step chapters.rb (with the slides'
+  // thumbnails). The presentation format's shapes.svg only when it has none
+  videoSlides: 'slides.json',
 };
 
 // What the video format does not publish, read from the presentation

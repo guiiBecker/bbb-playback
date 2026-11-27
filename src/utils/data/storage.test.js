@@ -100,7 +100,7 @@ describe('storage', () => {
     const storage = loadStorage();
     storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
 
-    expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/notes.html', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
+    expect(Object.keys(pending).sort()).toEqual(['GET rec/captions.json', 'GET rec/metadata.xml', 'GET rec/notes.html', 'GET rec/slides.json', 'GET rec/video.xml', M4V, M4V_SECOND, MP4].sort());
     // Everything else is the presentation format's optional data, never a video
     const elsewhere = global.fetch.mock.calls.map(([url]) => url).filter(url => !url.startsWith('/playback/video/rec/'));
     expect(elsewhere.every(url => url.startsWith('/presentation/rec/'))).toBe(true);
@@ -165,6 +165,32 @@ describe('storage', () => {
 
     expect(storage.notes).toContain('From the video folder');
     expect(storage.notes).not.toContain('Old');
+  });
+
+  it('takes the slides from the video format\'s slides.json over the presentation format\'s shapes.svg', async () => {
+    const pending = deferredFetch({
+      'shapes.svg': text(`<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <image id="image1" class="slide" in="0.0" out="40.0" xlink:href="presentation/old/slide-1.png" width="1600" height="900"/>
+</svg>`),
+    });
+    const storage = loadStorage();
+    storage.fetch('rec', jest.fn(), jest.fn(), jest.fn());
+
+    Object.values(files).filter(file => file !== 'slides.json').forEach(file => pending[fileKey(file)].resolve(MISSING));
+    pending[fileKey('slides.json')].resolve(json([
+      { alt: 'Agenda', src: 'presentation/p/thumbnails/thumb-2.png', timestamp: 0 },
+      { src: 'screenshare', timestamp: 30 },
+    ]));
+    pending[MP4].resolve(VIDEO);
+    pending[M4V].resolve(MISSING);
+    pending[M4V_SECOND].resolve(MISSING);
+    await flush();
+
+    expect(storage.thumbnails.map(({ folder, src, timestamp }) => [folder, src, timestamp])).toEqual([
+      ['video', 'presentation/p/thumbnails/thumb-2.png', 0],
+      ['video', 'screenshare', 30],
+    ]);
   });
 
   it('plays a recording without the presentation format, with no notes, polls or slides', async () => {
