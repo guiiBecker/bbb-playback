@@ -69,7 +69,7 @@ describe('getMessages', () => {
   it('fills what a locale leaves untranslated from English', () => {
     const messages = getMessages('fr');
 
-    expect(messages['button.search.aria']).not.toBe(getMessages('en')['button.search.aria']);
+    expect(messages['loader.wrapper.aria']).not.toBe(getMessages('en')['loader.wrapper.aria']);
     expect(messages['studio.tab.chapters']).toBe('Chapters');
   });
 
