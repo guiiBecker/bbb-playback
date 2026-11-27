@@ -1409,9 +1409,9 @@
   display: none;
 }
 
-// Fullscreen: on navy, the slide large on the left and the webcams in a column
-// on its right, with wide margins (on phones upright: webcams on top); the
-// controls sit at the bottom. Also overrides the narrow-screen layout
+// Fullscreen: on navy, the video as large as fits, with slim margins (the
+// video has its own around the slide); the controls sit at the bottom. Also
+// overrides the narrow-screen layout
 @mixin studio-main-fullscreen {
   background-color: var(--studio-player);
   grid-template-rows: minmax(0, 1fr) auto;
@@ -1421,22 +1421,7 @@
     aspect-ratio: auto;
     background: none;
     border-radius: 0;
-    gap: var(--studio-space-l);
-    grid-template-columns: minmax(0, 1fr) minmax(180px, 17%);
-    padding: 6vh 5.5vw 2vh;
-  }
-
-  // The master MP4 is one video with the webcams in it: a single column
-  // (stated again, the fullscreen columns above would win otherwise), and
-  // slim margins, as the video has its own around the slide
-  .studio-stage.master {
-    grid-template-columns: minmax(0, 1fr);
     padding: 2vh 2vw 1vh;
-  }
-
-  .studio-webcams {
-    border: 2px solid rgba(255, 255, 255, .85);
-    border-radius: 10px;
   }
 
   .studio-controls {
@@ -1452,51 +1437,8 @@
     display: none;
   }
 
-  // Webcams off: the column folds here too (stated again, the fullscreen
-  // columns above would win otherwise), and slimmer margins above and below
-  // let the slide grow, as it is mostly bound by the height
-  .studio-stage.webcams-hidden:not(.no-presentation) {
-    column-gap: 0;
-    grid-template-columns: minmax(0, 1fr) minmax(0px, 0%);
-    padding-bottom: 1vh;
-    padding-top: 2vh;
-  }
-
-  // Phones upright: the webcams small, right above the slide or screenshare
-  // at full width, the two together in the middle of the screen. The content
-  // takes 16:9 instead of the whole height, so nothing pushes them apart.
-  // Not the master MP4: it has no rows of its own and keeps the whole height
+  // Phones upright
   @media (max-width: 700px) and (orientation: portrait) {
-    .studio-stage:not(.no-presentation):not(.master) {
-      align-content: center;
-      gap: var(--studio-space-m);
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto auto;
-      padding: var(--studio-space-m);
-
-      .studio-webcams {
-        grid-row: 1;
-        justify-self: center;
-        width: 40%;
-      }
-
-      .studio-content {
-        aspect-ratio: 16 / 9;
-        grid-row: 2;
-      }
-
-      // The slide's row is the captions' containing block here
-      .studio-captions {
-        grid-area: 2 / 1 / 3 / 2;
-      }
-
-      // Webcams off: their row on top goes, the slide stays in the middle
-      &.webcams-hidden {
-        grid-template-rows: 0 auto;
-        row-gap: 0;
-      }
-    }
-
     .studio-captions span {
       font-size: var(--studio-font-m);
     }
@@ -1518,75 +1460,10 @@
   background-color: var(--studio-player);
   border-radius: var(--studio-radius) var(--studio-radius) 0 0;
   display: grid;
-  gap: var(--studio-space-l);
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 16%);
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   padding: var(--studio-space-l) var(--studio-space-l) var(--studio-space-s);
   position: relative;
-  // The webcams column folds and unfolds (webcams button)
-  transition: grid-template-columns .45s cubic-bezier(.2, .8, .2, 1), column-gap .45s cubic-bezier(.2, .8, .2, 1), padding .45s cubic-bezier(.2, .8, .2, 1);
-
-  &.no-video {
-    grid-template-columns: minmax(0, 1fr);
-
-    .studio-webcams {
-      display: none;
-    }
-  }
-
-  &.no-presentation {
-    grid-template-columns: minmax(0, 1fr);
-
-    .studio-content {
-      display: none;
-    }
-
-    .studio-webcams {
-      align-self: stretch;
-    }
-  }
-}
-
-.studio-content {
-  border-radius: var(--studio-radius-small);
-  display: flex;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
-  position: relative;
-
-  .content {
-    --top-content-background-color: transparent;
-    --media-background-color: transparent;
-    height: 100%;
-    width: 100%;
-  }
-
-  // Rounded slide. The presentation clips to the part of the slide in view
-  // (its viewBox), so rounding that clip rounds the slide, zoomed or not. In
-  // percent of the viewBox width, the corners keep their size on screen
-  .presentation clipPath rect {
-    rx: 1.2%;
-  }
-}
-
-// A tile beside the slide, level with its middle
-.studio-webcams {
-  align-self: center;
-  border: 1px solid rgba(255, 255, 255, .45);
-  border-radius: var(--studio-radius-small);
-  min-height: 0;
-  overflow: hidden;
-  // Back in: fades and springs to its size as the column opens
-  transition: opacity .3s .1s, transform .45s cubic-bezier(.2, .9, .3, 1.2) .05s, visibility 0s;
-  width: 100%;
-
-  .webcams-wrapper,
-  .video-js {
-    background-color: var(--studio-tile);
-    height: 100%;
-    width: 100%;
-  }
 }
 
 // Double tap to seek on touch screens (gestures.js). The browser's own double
@@ -1674,23 +1551,6 @@
   }
 }
 
-// Webcams off: their column folds to nothing, the presentation takes the
-// room. The tile fades and shrinks away but stays, its video carries the
-// sound. Above the layouts' own columns (phones, sideways, fullscreen)
-.studio-stage.webcams-hidden:not(.no-presentation) {
-  column-gap: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(0px, 0%);
-
-  .studio-webcams {
-    opacity: 0;
-    // Shrinks towards the edge, never past it (no sideways scrolling)
-    transform: scale(.8);
-    transform-origin: right center;
-    transition: opacity .2s, transform .3s ease-in, visibility 0s linear .3s;
-    visibility: hidden;
-  }
-}
-
 // The webcams button: its icon pops in when it changes
 .studio-webcams-toggle .studio-icon {
   animation: studio-icon-pop .3s cubic-bezier(.2, .9, .3, 1.4);
@@ -1709,12 +1569,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .studio-stage,
-  .studio-webcams,
-  .studio-stage.webcams-hidden:not(.no-presentation) .studio-webcams {
-    transition: none;
-  }
-
   .studio-webcams-toggle .studio-icon {
     animation: none;
   }
@@ -1722,10 +1576,6 @@
 
 // The master MP4 (master.js): one video with slides, webcams and screen
 // sharing fills the stage, with names and who is talking drawn over it
-.studio-stage.master {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .studio-master {
   min-height: 0;
   min-width: 0;
@@ -2846,15 +2696,9 @@
     white-space: nowrap;
   }
 
-  // The webcams in a narrow column beside the slide
   .studio-stage {
     border-radius: 0;
     padding: var(--studio-space-sm) var(--studio-space-m);
-
-    // Not the master MP4: its webcams are in the video
-    &:not(.no-presentation):not(.master) {
-      grid-template-columns: minmax(0, 1fr) 18%;
-    }
   }
 
   .studio-controls {
@@ -2971,12 +2815,7 @@
   .studio-stage {
     aspect-ratio: auto;
     border-radius: 0;
-    gap: var(--studio-space-m);
     padding: var(--studio-space-s) var(--studio-space-m);
-
-    &:not(.no-presentation):not(.master) {
-      grid-template-columns: minmax(0, 1fr) minmax(120px, 18%);
-    }
   }
 
   .studio-controls {
