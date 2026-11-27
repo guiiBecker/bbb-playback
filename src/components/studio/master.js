@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import cx from 'classnames';
 import { defineMessages, useIntl } from 'react-intl';
-import { buildFileURL } from 'utils/data';
 import storage from 'utils/data/storage';
 import useDownload from './download';
 import Icon from './icon';
@@ -29,21 +28,9 @@ const intlMessages = defineMessages({
 // layout.json, or null while it loads or when it is not there (the video
 // then plays without overlays)
 const useMasterLayout = () => {
-  const [layout, setLayout] = useState(null);
+  const data = usePublishedJson('layout.json');
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(buildFileURL('layout.json'), { cache: 'no-store' })
-      .then((response) => (response.ok ? response.json() : null))
-      .catch(() => null)
-      .then((data) => {
-        if (!cancelled && data && Array.isArray(data.tiles) && data.people) setLayout(data);
-      });
-
-    return () => { cancelled = true; };
-  }, []);
-
-  return layout;
+  return data && Array.isArray(data.tiles) && data.people ? data : null;
 };
 
 // talking.json: { "<user id>": { userName, events: [{ start, stop }] } } ->

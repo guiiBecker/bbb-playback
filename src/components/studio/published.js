@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { buildFileURL } from 'utils/data';
 
-// Optional JSON files published next to the recording by the server's
-// post_publish scripts (participants.json, talking.json, timeline.json): each
-// one is fetched once and shared; null when it is not there or not valid
+// Optional JSON files published next to the recording by the video format
+// (layout.json) and the server's post_publish scripts (participants.json,
+// talking.json, timeline.json): each one is fetched once and shared; null
+// when it is not there or not valid
 const cache = new Map();
 
 const load = (file) => {
