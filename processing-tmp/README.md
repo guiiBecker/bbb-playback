@@ -22,7 +22,7 @@ The playback plays BBB's **`video` recording format** and reads its folder,
 | `timeline.json` | `post_publish/studio_data.rb` | raised hands (with who raised them) and reactions on the timeline |
 | `notes.html` + `notes.pdf` | `post_publish/studio_data.rb` | the Notes tab, its PDF download (its Markdown is made in the browser) |
 | `participants.json` | `post_publish/participants.rb` | the participants list |
-| `slides.json` + `presentation/<id>/thumbnails/` | `post_publish/chapters.rb` | the Chapters tab, slide and screen sharing markers, the chapters in the download |
+| `slides.json` + `presentation/<presentation id>/thumbnails/` (in the `video` folder) | `post_publish/chapters.rb` | the Chapters tab, slide and screen sharing markers, the chapters in the download |
 
 **The video.** The playback looks for `video-0.m4v`, then `video-1.m4v`, then
 `video-0.mp4`. It plays the first one found and the download offers that same
@@ -111,8 +111,8 @@ The raw files must still be on the server.
 
 ## Processing steps
 
-With only the `video` format (no notes, chapters or polls in the playback,
-see above), `bigbluebutton.yml` would have:
+With only the `video` format (and the post_publish scripts above; only the
+polls are then missing), `bigbluebutton.yml` would have:
 
 ```yaml
 steps:
